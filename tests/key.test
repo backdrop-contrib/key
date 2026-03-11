@@ -256,4 +256,83 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     $this->assertNoText($original_label, 'The file/encryption key no longer appears on the key listing page.');
   }
 
+  /**
+   * Test the Env key provider.
+   */
+  public function testEnvKeyProvider() {
+    // Create a random label.
+    $original_label = BackdropWebTestCase::randomName(8);
+    $original_id = strtolower($original_label);
+    $env_variable = strtoupper($original_id);
+
+    // Assign environment variable for the current request.
+    putenv("$env_variable=123");
+
+    // Define a configuration.
+    $original_config = array(
+      'id' => $original_id,
+      'label' => $original_label,
+      'description' => 'A test key.',
+      'key_type' => 'authentication',
+      'key_type_settings' => array(),
+      'key_provider' => 'env',
+      'key_provider_settings' => array(
+        'env_variable' => $env_variable,
+        'base64_encoded' => 0,
+      ),
+      'key_input' => 'none',
+      'key_input_settings' => array(),
+    );
+
+    // Set the data to save.
+    $data = $original_config;
+    unset($data['key_type_settings']);
+    unset($data['key_provider_settings']);
+    unset($data['key_input_settings']);
+    unset($data['key_input']);
+    foreach ($original_config['key_type_settings'] as $index => $value) {
+      $data["key_type_settings[$index]"] = $value;
+    }
+    foreach ($original_config['key_provider_settings'] as $index => $value) {
+      $data["key_provider_settings[$index]"] = $value;
+    }
+    unset($data['key_provider_settings[base64_encoded]']);
+
+    // Add the configuration.
+    $this->backdropGet(KEY_MENU_PATH . '/add');
+    $this->backdropPostAJAX(NULL, array('key_type' => $data['key_type']), 'key_type');
+    $this->backdropPostAJAX(NULL, array('key_provider' => $data['key_provider']), 'key_provider');
+    $this->backdropPost(NULL, $data, t('Save key'));
+
+    // Confirm that the confirmation text appears.
+    $this->assertText(t('The key @label has been added.', array('@label' => $original_label)), 'Confirmation text appears after adding the environment variable key.');
+
+    // Confirm that the key appears on the listing page.
+    $this->backdropGet(KEY_MENU_PATH);
+    $this->assertText($original_label, 'The environment variable key appears on the key listing page.');
+
+    // Confirm that the key was added successfully.
+    $config = key_get_key($original_id);
+    $this->assertEqual($config, $original_config, 'The environment variable key was added successfully.');
+
+    // Confirm that the key value can be retrieved successfully.
+    $key_value = key_get_key_value($original_id);
+    $this->assertEqual($key_value, getenv($env_variable), 'The environment variable key value was retrieved successfully.');
+
+    // Delete the key.
+    $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");
+    $this->backdropPost(NULL, NULL, t('Delete'));
+
+    // Confirm that the confirmation text appears.
+    $this->assertText(t('The key @label has been deleted.', array('@label' => $original_label)), 'Confirmation text appears after deleting the environment variable key.');
+
+    // Confirm that the key was deleted.
+    $config = key_get_key($original_id);
+    $this->assertFalse($config, 'The environment variable key was deleted successfully.');
+
+    // Confirm that the key no longer appears on the listing page.
+    $this->backdropGet(KEY_MENU_PATH);
+    $this->assertNoText($original_label, 'The environment variable key no longer appears on the key listing page.');
+  }
+
 }
