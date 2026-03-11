@@ -48,20 +48,44 @@ A key provider is the means by which the key value is stored and/or
 provided when needed. The following key providers are included with
 Key:
 
-* **Configuration:** Stores the key in Backdrop configuration settings.
+**Configuration:** Stores the key in Backdrop configuration settings.
 The key value can be set, edited, and viewed through the administrative
-interface, making it useful during site development. However, for
-better security on production websites, keys should not be stored in
-configuration. Keys using the Configuration provider are not obscured
+interface, making it useful during site development. There are ways to make this
+relatively more secure by putting configuration directories outside the webroot.
+And ensure that any configuration backups or version control artifacts are
+protected. Or override the key value in `settings.php`. For example, `$config['key.key.KEYNAME']['key_provider_settings']['key_value'] = "THE OVERRIDDEN KEY VALUE";`.
+If using such an approach leave the key_value blank in the actual config record.
+
+However, for better security on production websites, keys should generally not
+be stored in configuration. Keys using the Configuration provider are not obscured
 when editing, making it even more important that this provider not be
 used in a production environment.
-* **File:** Stores the key in a file, which can be anywhere in the file
+
+**File:** Stores the key in a file, which can be anywhere in the file
 system, as long as it's readable by the user that runs the web server.
 You will be required to manually create this file with the key and place
 it on your server. Storing the key in a file outside of the web root is
 generally more secure than storing it in the database.
 
-Both the Configuration and File provider plugins support storing the
+**Environment:** Stores the key in an environment variable. Some hosts provide
+a UI for setting environment variables which are available during runtime. Some
+local development tools, such as Lando, also allow setting environment variables.
+Another approach is to put the keys in a `.env` file. This will require some
+more advanced technical skills. You'll then need to install the
+[Symfony Dotenv](https://symfony.com/packages/Dotenv) package using [Composer](https://getcomposer.org/):
+
+`composer require symfony/dotenv`
+
+and then putting this into
+`settings.php`:
+
+```php
+include __DIR__ . '/../vendor/autoload.php';
+use Symfony\Component\Dotenv\Dotenv;
+(new Dotenv())->usePutenv()->bootEnv(BACKDROP_ROOT . '/../.env', 'dev', ['test'], TRUE);
+```
+
+The Configuration, File and Environment provider plugins support storing the
 key with Base64 encoding.
 
 Key providers are Plugin Manager plugins, so new providers can be defined
