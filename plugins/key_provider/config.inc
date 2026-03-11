@@ -7,7 +7,7 @@
 
 $plugin = array(
   'label' => t('Configuration'),
-  'description' => t('The Configuration key provider stores the key in configuration, which is likely web-accessible (and should not be).'),
+  'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected. It is also possible to override the key value in <code>settings.php</code>. For example, <code>@format</code>. If using such an approach leave the key_value blank in the actual config record.', array('@format' => '$config[\'key.key.KEYNAME\'][\'key_provider_settings\'][\'key_value\'] = "THE OVERRIDDEN KEY VALUE";')),
   'storage method' => 'config',
   'key value' => array(
     'accepted' => TRUE,
