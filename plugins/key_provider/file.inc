@@ -45,8 +45,10 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
   $form['file_location'] = array(
     '#type' => 'textfield',
     '#title' => t('File location'),
-    '#description' => t('The location of the file in which the key will be stored. The path may be absolute (e.g., %abs), relative to the Backdrop directory (e.g., %rel), or defined using a stream wrapper (e.g., %str). You will need to manually place this file on your server with the key in it.',
+    '#description' => t(
+      'The location of the text file in which the key will be stored. The recommended location is relative to the <a href="@filesystem_settings">Private file system path</a> (e.g., %str), if it has been set. Other options are to set an absolute path (e.g., %abs), or relative to the Backdrop directory (e.g., %rel). You will need to manually place this text file on your server with the key in it.',
       array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
         '%abs' => '/etc/keys/foobar.key',
         '%rel' => '../keys/foobar.key',
         '%str' => 'private://keys/foobar.key',
