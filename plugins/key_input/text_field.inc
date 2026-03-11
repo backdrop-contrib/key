@@ -43,6 +43,7 @@ function key_input_text_field_build_configuration_form($form, &$form_state) {
   $form['key_value'] = array(
     '#type' => 'textfield',
     '#title' => t('Key value'),
+    '#description' => t('Ensure the entered key does not include any unwanted characters or white space.'),
     '#required' => $key_provider['key value']['required'],
     '#default_value' => $key_value_data['current'],
     // Tell the browser not to autocomplete this field.
