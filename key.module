@@ -354,6 +354,7 @@ function key_get_plugin($type, $plugin_id, $reset = FALSE) {
  */
 function key_get_keys() {
   $config_keys = config_get_names_with_prefix('key.key.');
+  $configs = array();
   foreach ($config_keys as $config_key) {
     $key_config = config_get($config_key);
     $configs[$key_config['id']] = $key_config;
