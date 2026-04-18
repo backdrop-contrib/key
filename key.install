@@ -48,3 +48,35 @@ function key_update_1002() {
   }
 
 }
+
+/**
+ * Set default value for stripping trailing line breaks.
+ */
+function key_update_1003() {
+  $updated = FALSE;
+
+  // Loop through keys.
+  $config_names = config_get_names_with_prefix('key.key.');
+  foreach ($config_names as $key_config_name) {
+    $key = config($key_config_name);
+
+    // If this key uses the File key provider.
+    if ($key->get('key_provider') == 'file') {
+      $settings = $key->get('key_provider_settings');
+
+      // If the Strip Line Breaks field has not been set.
+      if (!isset($settings['strip_line_breaks'])) {
+        // Set Strip Line Breaks to FALSE and save the configuration.
+        $settings['strip_line_breaks'] = FALSE;
+        $key->set('key_provider_settings', $settings);
+        $key->save(TRUE);
+
+        $updated = TRUE;
+      }
+    }
+  }
+
+  if ($updated) {
+    return t('File key provider settings updated.');
+  }
+}
