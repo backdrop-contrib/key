@@ -154,6 +154,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'key_provider' => 'file',
       'key_provider_settings' => array(
         'file_location' => $original_file_location,
+        'strip_line_breaks' => 0,
         'base64_encoded' => 0,
       ),
       'key_input' => 'none',
