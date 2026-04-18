@@ -35,6 +35,7 @@ $plugin = array(
  */
 function key_provider_private_default_configuration() {
   return array(
+    'strip_line_breaks' => FALSE,
     'base64_encoded' => FALSE,
   );
 }
@@ -48,6 +49,13 @@ function key_provider_private_default_configuration() {
 function key_provider_private_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_private_default_configuration();
+
+  $form['strip_line_breaks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Strip trailing line breaks'),
+    '#description' => t('Check this to remove any trailing line breaks from the file. Leave unchecked if there is a chance that a line break could be a valid character in the key.'),
+    '#default_value' => $plugin_config['strip_line_breaks'],
+  );
 
   // If this is for an encryption key.
   $key_type = key_get_plugin('key_type', $config['key_type']);
@@ -98,6 +106,10 @@ function key_provider_private_get_key_value($config) {
   }
 
   $key_value = file_get_contents($file);
+
+  if (isset($config['key_provider_settings']['strip_line_breaks']) && $config['key_provider_settings']['strip_line_breaks']) {
+    $key_value = rtrim($key_value, "\n\r");
+  }
 
   // Base64-decode if necessary.
   if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded']) {
