@@ -901,3 +901,38 @@ function _key_obscure_value($value, $options = array()) {
 
   return $obscured_chars . $visible_right_chars;
 }
+
+/**
+ * Confirm that keys directory exists and is writable.
+ *
+ * Creates a key file in the private file system if it is possible.
+ *
+ * @return string|false
+ *   Filename or FALSE if unable to create it.
+ */
+function _key_create_private_key_file() {
+  $mode = 0700;
+  $private_path = config_get('system.core', 'file_private_path');
+  $directory = '';
+  if ($private_path) {
+    $directory = realpath($private_path . DIRECTORY_SEPARATOR . 'keys');
+  }
+
+  if (is_dir($directory) || @backdrop_mkdir($directory, $mode, TRUE)) {
+    if (is_writable($directory) || backdrop_chmod($directory, $mode)) {
+      // Give the key a nigh-unguessable filename.
+      $destination = $directory . DIRECTORY_SEPARATOR . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
+
+      if (is_file($destination)) {
+        return FALSE;
+      }
+
+      // Create the file and add placeholder content.
+      if (file_put_contents($destination, '.')) {
+        return $destination;
+      }
+    }
+  }
+
+  return FALSE;
+}

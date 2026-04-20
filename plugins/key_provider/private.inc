@@ -17,7 +17,7 @@ $plugin = array(
   'storage method' => 'file',
   'key value' => array(
     'accepted' => TRUE,
-    'required' => FALSE,
+    'required' => TRUE,
   ),
   'default configuration' => 'key_provider_private_default_configuration',
   'build configuration form' => 'key_provider_private_build_configuration_form',
@@ -35,6 +35,7 @@ $plugin = array(
  */
 function key_provider_private_default_configuration() {
   return array(
+    'file_location' => '',
     'strip_line_breaks' => FALSE,
     'base64_encoded' => FALSE,
   );
@@ -49,6 +50,11 @@ function key_provider_private_default_configuration() {
 function key_provider_private_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_private_default_configuration();
+
+  $form['file_location'] = array(
+    '#type' => 'hidden',
+    '#value' => $plugin_config['file_location'],
+  );
 
   $form['strip_line_breaks'] = array(
     '#type' => 'checkbox',
@@ -77,9 +83,7 @@ function key_provider_private_build_configuration_form($form, &$form_state) {
  */
 function key_provider_private_validate_configuration_form($form, &$form_state) {
   $id = $form_state['storage']['key_config']['id'] ?? '';
-  if ($id) {
-    $file = "private://keys/{$id}.key";
-  }
+  $config = config('key.key.' . $id);
 
   // Check that private file system is set.
   if (!config_get('system.core', 'file_private_path')) {
@@ -87,10 +91,24 @@ function key_provider_private_validate_configuration_form($form, &$form_state) {
     return;
   }
 
-  // Only create if the file doesn't already exist.
-  if (is_file($file)) {
-    form_set_error(NULL, t('There is already a file at the specified location.'));
-    return;
+  if ($config->isNew()) {
+    $filename = _key_create_private_key_file();
+
+    if (!$filename) {
+      form_set_error(NULL, t('Unable to create the private key file.'));
+      return;
+    }
+
+    $form_state['values']['file_location'] = $filename;
+  }
+  else {
+    $filename = $form_state['values']['file_location'];
+
+    // Make sure the file exists and is readable.
+    if (!is_file($filename) || !is_readable($filename)) {
+      form_set_error(NULL, t('Unable to read the private key file.'));
+      return;
+    }
   }
 }
 
@@ -98,14 +116,14 @@ function key_provider_private_validate_configuration_form($form, &$form_state) {
  * Callback function to return a key from a file.
  */
 function key_provider_private_get_key_value($config) {
-  $file = "private://keys/{$config['id']}.key";
+  $filename = $config['key_provider_settings']['file_location'];
 
   // Make sure the file exists and is readable.
-  if (!is_file($file) || !is_readable($file)) {
+  if (!is_file($filename) || !is_readable($filename)) {
     return NULL;
   }
 
-  $key_value = file_get_contents($file);
+  $key_value = file_get_contents($filename);
 
   if (isset($config['key_provider_settings']['strip_line_breaks']) && $config['key_provider_settings']['strip_line_breaks']) {
     $key_value = rtrim($key_value, "\n\r");
@@ -137,12 +155,18 @@ function key_provider_private_set_key_value($config, &$form_state, $key_value) {
     $key_value = base64_encode($key_value);
   }
 
-  // Ensure it isn't saved to the config.
+  // Ensure value isn't saved to the config.
   unset($form_state['values']['key_value']);
 
-  $file = "private://keys/{$config['id']}.key";
+  $filename = '';
+  if ($filename = $form_state['values']['file_location']) {
+    $status = (bool) file_put_contents($filename, $key_value);
+  }
+  else {
+    $status = FALSE;
+  }
 
-  return file_put_contents($file, $key_value);
+  return $status;
 }
 
 /**
@@ -155,5 +179,6 @@ function key_provider_private_set_key_value($config, &$form_state, $key_value) {
  *   TRUE if successful, FALSE if unsuccessful.
  */
 function key_provider_private_delete_key_value($config) {
-  return backdrop_unlink("private://keys/{$config['id']}.key");
+  $filename = $config['key_provider_settings']['file_location'] ?? '';
+  return $filename ? backdrop_unlink($filename) : FALSE;
 }
