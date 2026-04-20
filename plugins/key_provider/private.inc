@@ -51,7 +51,6 @@ function key_provider_private_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_private_default_configuration();
 
-<<<<<<< HEAD
   $form['file_location'] = array(
     '#type' => 'hidden',
     '#value' => $plugin_config['file_location'],
@@ -64,8 +63,6 @@ function key_provider_private_build_configuration_form($form, &$form_state) {
     '#default_value' => $plugin_config['strip_line_breaks'],
   );
 
-=======
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
   // If this is for an encryption key.
   $key_type = key_get_plugin('key_type', $config['key_type']);
   if ($key_type['group'] == 'encryption') {
@@ -85,46 +82,54 @@ function key_provider_private_build_configuration_form($form, &$form_state) {
  * Validate callback for the configuration form.
  */
 function key_provider_private_validate_configuration_form($form, &$form_state) {
+  $key_provider_settings = $form_state['values'];
+
   $id = $form_state['storage']['key_config']['id'] ?? '';
-<<<<<<< HEAD
   $config = config('key.key.' . $id);
-=======
-  if ($id) {
-    $file = "private://keys/{$id}.key";
-  }
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
 
   // Check that private file system is set.
   if (!config_get('system.core', 'file_private_path')) {
-    form_set_error(NULL, t('The private file system needs to be set in order for the private key provider to save this key.'));
+    form_error($form, t(
+      'The <a href="@filesystem_settings">Private file system path</a> (e.g., %str) needs to be set in order for the private key provider to save this key.',
+      array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
+        '%str' => 'private://',
+      )
+    ));
     return;
   }
 
-<<<<<<< HEAD
   if ($config->isNew()) {
     $filename = _key_create_private_key_file();
 
     if (!$filename) {
-      form_set_error(NULL, t('Unable to create the private key file.'));
+      form_error($form, t(
+        'Unable to create the private key file. Ensure that the <a href="@filesystem_settings">Private file system path</a> (e.g., %str) has been set.',
+        array(
+          '@filesystem_settings' => url('admin/config/media/file-system'),
+          '%str' => 'private://',
+        )
+      ));
       return;
     }
 
     $form_state['values']['file_location'] = $filename;
   }
   else {
-    $filename = $form_state['values']['file_location'];
+    // Existing key.
+    $filename = $key_provider_settings['file_location'];
 
-    // Make sure the file exists and is readable.
-    if (!is_file($filename) || !is_readable($filename)) {
-      form_set_error(NULL, t('Unable to read the private key file.'));
+    // Does the file exist?
+    if (!is_file($filename)) {
+      form_set_error('file_location', t('There is no private key file at the specified location.'));
       return;
     }
-=======
-  // Only create if the file doesn't already exist.
-  if (is_file($file)) {
-    form_set_error(NULL, t('There is already a file at the specified location.'));
-    return;
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
+
+    // Is the file readable?
+    if ((!is_readable($filename))) {
+      form_set_error('file_location', t('The private key file at the specified location is not readable.'));
+      return;
+    }
   }
 }
 
@@ -132,7 +137,6 @@ function key_provider_private_validate_configuration_form($form, &$form_state) {
  * Callback function to return a key from a file.
  */
 function key_provider_private_get_key_value($config) {
-<<<<<<< HEAD
   $filename = $config['key_provider_settings']['file_location'];
 
   // Make sure the file exists and is readable.
@@ -145,16 +149,19 @@ function key_provider_private_get_key_value($config) {
   if (isset($config['key_provider_settings']['strip_line_breaks']) && $config['key_provider_settings']['strip_line_breaks']) {
     $key_value = rtrim($key_value, "\n\r");
   }
-=======
-  $file = "private://keys/{$config['id']}.key";
+
+  $filename = $config['key_provider_settings']['file_location'];
 
   // Make sure the file exists and is readable.
-  if (!is_file($file) || !is_readable($file)) {
+  if (!is_file($filename) || !is_readable($filename)) {
     return NULL;
   }
 
-  $key_value = file_get_contents($file);
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
+  $key_value = file_get_contents($filename);
+
+  if (isset($config['key_provider_settings']['strip_line_breaks']) && $config['key_provider_settings']['strip_line_breaks']) {
+    $key_value = rtrim($key_value, "\n\r");
+  }
 
   // Base64-decode if necessary.
   if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded']) {
@@ -182,7 +189,6 @@ function key_provider_private_set_key_value($config, &$form_state, $key_value) {
     $key_value = base64_encode($key_value);
   }
 
-<<<<<<< HEAD
   // Ensure value isn't saved to the config.
   unset($form_state['values']['key_value']);
 
@@ -195,14 +201,6 @@ function key_provider_private_set_key_value($config, &$form_state, $key_value) {
   }
 
   return $status;
-=======
-  // Ensure it isn't saved to the config.
-  unset($form_state['values']['key_value']);
-
-  $file = "private://keys/{$config['id']}.key";
-
-  return file_put_contents($file, $key_value);
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
 }
 
 /**
@@ -215,10 +213,6 @@ function key_provider_private_set_key_value($config, &$form_state, $key_value) {
  *   TRUE if successful, FALSE if unsuccessful.
  */
 function key_provider_private_delete_key_value($config) {
-<<<<<<< HEAD
   $filename = $config['key_provider_settings']['file_location'] ?? '';
   return $filename ? backdrop_unlink($filename) : FALSE;
-=======
-  return backdrop_unlink("private://keys/{$config['id']}.key");
->>>>>>> 29d174d (Issue #21: default to creating file key in private file system)
 }

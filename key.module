@@ -1008,6 +1008,7 @@ function _key_create_private_key_file() {
       // Give the key a nigh-unguessable filename.
       $destination = $directory . DIRECTORY_SEPARATOR . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
 
+      // If file already exists, then fail.
       if (is_file($destination)) {
         return FALSE;
       }
