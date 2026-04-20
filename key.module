@@ -743,7 +743,7 @@ function _key_get_plugin_types() {
  */
 function _key_config_defaults() {
   $key_type_id = 'authentication';
-  $key_provider_id = 'private';
+  $key_provider_id = 'file';
 
   $key_type = key_get_plugin('key_type', $key_type_id);
   $key_provider = key_get_plugin('key_provider', $key_provider_id);
@@ -927,8 +927,9 @@ function _key_create_private_key_file() {
         return FALSE;
       }
 
-      // Create the file and add placeholder content.
-      if (file_put_contents($destination, '.')) {
+      // Ensure the file exists and is readable.
+      file_put_contents($destination, '');
+      if (is_readable($destination)) {
         return $destination;
       }
     }
