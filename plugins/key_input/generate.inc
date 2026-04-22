@@ -5,15 +5,6 @@
  * Plugin definition for the Generate key input.
  */
 
-$plugin = array(
-  'label' => t('Generate'),
-  'description' => t('Uses the key_type generate function.'),
-  'default configuration' => 'key_input_generate_default_configuration',
-  'build configuration form' => 'key_input_generate_build_configuration_form',
-  'process submitted key value' => 'key_input_generate_process_submitted_key_value',
-  'process existing key value' => '_key_default_process_existing_key_value',
-);
-
 /**
  * Define the default plugin configuration.
  *
@@ -92,8 +83,8 @@ function key_input_generate_process_submitted_key_value(&$form_state) {
     );
   }
   else {
-    $key_type = key_get_plugin('key_type', $config['key_type']);
-    $generate_function = plugin_manager_get_function($key_type, 'generate key value');
+    $key_type = key_get_key_type_plugin($config['key_type']);
+    $generate_function = key_get_function($key_type, 'generate key value');
     $key_value = $generate_function($config);
     $form_state['values']['generated'] = TRUE;
 

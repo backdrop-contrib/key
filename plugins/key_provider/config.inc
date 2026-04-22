@@ -5,22 +5,6 @@
  * Plugin definition for the Configuration key provider.
  */
 
-$plugin = array(
-  'label' => t('Configuration'),
-  'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected. It is also possible to override the key value in <code>settings.php</code>. For example, <code>@format</code>. If using such an approach leave the key_value blank in the actual config record.', array('@format' => '$config[\'key.key.KEYNAME\'][\'key_provider_settings\'][\'key_value\'] = "THE OVERRIDDEN KEY VALUE";')),
-  'storage method' => 'config',
-  'key value' => array(
-    'accepted' => TRUE,
-    'required' => FALSE,
-  ),
-  'default configuration' => 'key_provider_config_default_configuration',
-  'build configuration form' => 'key_provider_config_build_configuration_form',
-  'get key value' => 'key_provider_config_get_key_value',
-  'set key value' => 'key_provider_config_set_key_value',
-  'delete key value' => 'key_provider_config_delete_key_value',
-  'obscure key value' => 'key_provider_config_obscure_key_value',
-);
-
 /**
  * The default plugin configuration.
  *
@@ -44,7 +28,7 @@ function key_provider_config_build_configuration_form($form, &$form_state) {
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_config_default_configuration();
 
   // If this is for an encryption key.
-  $key_type = key_get_plugin('key_type', $config['key_type']);
+  $key_type = key_get_key_type_plugin($config['key_type']);
   if ($key_type['group'] == 'encryption') {
     // Add an option to indicate that the value is Base64-encoded.
     $form['base64_encoded'] = array(

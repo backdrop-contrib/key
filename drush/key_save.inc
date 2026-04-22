@@ -81,10 +81,10 @@ function _drush_key_save($id, $key_value = NULL) {
 
   // If a key value was specified.
   if (isset($key_value)) {
-    $key_provider = key_get_plugin('key_provider', $values['key_provider']);
+    $key_provider = key_get_key_provider_plugin($values['key_provider']);
 
     // If the key provider supports setting a key value.
-    if ($key_provider['key value']['accepted'] && $set_key_value_function = plugin_manager_get_function($key_provider, 'set key value')) {
+    if ($key_provider['key value']['accepted'] && $set_key_value_function = key_get_function($key_provider, 'set key value')) {
       // Create a dummy form state.
       $form_state = array('values' => $values);
 

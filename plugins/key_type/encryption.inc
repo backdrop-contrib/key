@@ -5,20 +5,6 @@
  * Plugin definition for the generic Encryption key type.
  */
 
-$plugin = array(
-  'label' => t('Encryption'),
-  'description' => t('Can be used for encrypting and decrypting data. This key type has a field for selecting a key size, which is used to validate the size of the key value.'),
-  'group' => 'encryption',
-  'key value' => array(
-    'plugin' => 'text_field',
-  ),
-  'default configuration' => 'key_type_encryption_default_configuration',
-  'build configuration form' => 'key_type_encryption_build_configuration_form',
-  'validate configuration form' => 'key_type_encryption_validate_configuration_form',
-  'generate key value' => 'key_type_encryption_generate_key_value',
-  'validate key value' => 'key_type_encryption_validate_key_value',
-);
-
 /**
  * The default plugin configuration.
  *

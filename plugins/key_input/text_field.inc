@@ -5,15 +5,6 @@
  * Plugin definition for the Text Field key input.
  */
 
-$plugin = array(
-  'label' => t('Text field'),
-  'description' => t('A simple text field.'),
-  'default configuration' => 'key_input_text_field_default_configuration',
-  'build configuration form' => 'key_input_text_field_build_configuration_form',
-  'process submitted key value' => '_key_default_process_submitted_key_value',
-  'process existing key value' => '_key_default_process_existing_key_value',
-);
-
 /**
  * Define the default plugin configuration.
  *
@@ -37,8 +28,8 @@ function key_input_text_field_build_configuration_form($form, &$form_state) {
   $key_value_data = $form_state['storage']['key_value'];
   $config = $form_state['storage']['key_config'];
   $plugin_config = $config['key_input_settings'] + key_input_text_field_default_configuration();
-  $key_type = key_get_plugin('key_type', $config['key_type']);
-  $key_provider = key_get_plugin('key_provider', $config['key_provider']);
+  $key_type = key_get_key_type_plugin($config['key_type']);
+  $key_provider = key_get_key_provider_plugin($config['key_provider']);
 
   $form['key_value'] = array(
     '#type' => 'textfield',
