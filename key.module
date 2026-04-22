@@ -186,24 +186,26 @@ function _key_process_key_select($element) {
  *
  * @param string $type
  *   The type of plugin.
+ * @param bool $all
+ *   A flag indicating whether to include plugins with unmet dependencies.
  *
  * @return array
  *   Information about all key plugins of the requested type.
  */
-function key_get_plugins($type) {
+function key_get_plugins($type, $all = TRUE) {
   switch ($type) {
     case 'key_type':
-      $info = key_get_key_type_plugin();
+      $plugins = key_get_key_type_plugin();
       break;
     case 'key_input':
-      $info = key_get_key_input_plugin();
+      $plugins = key_get_key_input_plugin();
       break;
     case 'key_provider':
-      $info = key_get_key_provider_plugin();
+      $plugins = key_get_key_provider_plugin();
       break;
   }
 
-  return $info;
+  return $all ? $plugins : array_filter($plugins, '_key_plugin_is_valid');
 }
 
 /**
@@ -213,15 +215,12 @@ function key_get_plugins($type) {
  *   The type of plugin.
  * @param bool $all
  *   A flag indicating whether to include plugins with unmet dependencies.
- * @param bool $reset
- *   A flag indicating whether to clear the plugin cache. Otherwise, stale
- *   data may be returned if plugin properties have changed.
  *
  * @return array
  *   An array of key plugins, with ids for keys and labels for values.
  */
-function key_get_plugins_as_options($type, $all = TRUE, $reset = FALSE) {
-  $plugins = key_get_plugins($type);
+function key_get_plugins_as_options($type, $all = TRUE) {
+  $plugins = key_get_plugins($type, $all);
   $options = array();
 
   foreach ($plugins as $id => $plugin) {
@@ -270,13 +269,11 @@ function key_get_keys() {
  *
  * @param string $key_provider_id
  *   The key provider ID to use.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_provider($key_provider_id, $reset = FALSE) {
+function key_get_keys_by_provider($key_provider_id) {
   $filtered_keys = array();
   $keys = key_get_keys();
 
@@ -294,13 +291,11 @@ function key_get_keys_by_provider($key_provider_id, $reset = FALSE) {
  *
  * @param string $key_type_id
  *   The key type ID to use.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_type($key_type_id, $reset = FALSE) {
+function key_get_keys_by_type($key_type_id) {
   $filtered_keys = array();
   $keys = key_get_keys();
 
@@ -318,13 +313,11 @@ function key_get_keys_by_type($key_type_id, $reset = FALSE) {
  *
  * @param string $storage_method
  *   The storage method of the key provider.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_storage_method($storage_method, $reset = FALSE) {
+function key_get_keys_by_storage_method($storage_method) {
   $filtered_keys = array();
   $keys = key_get_keys();
   $providers = key_get_plugins('key_provider');
@@ -366,13 +359,11 @@ function key_get_keys_by_type_group($type_group) {
  *
  * @param array $filters
  *   An array of filters to apply to the list of options.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of key names, indexed by id.
  */
-function key_get_key_names_as_options($filters = array(), $reset = FALSE) {
+function key_get_key_names_as_options($filters = array()) {
   $options = array();
 
   $keys = key_get_keys();
@@ -380,13 +371,13 @@ function key_get_key_names_as_options($filters = array(), $reset = FALSE) {
   foreach ($filters as $index => $filter) {
     switch ($index) {
       case 'type':
-        $keys = array_intersect_key(key_get_keys_by_type($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_type($filter), $keys);
         break;
       case 'provider':
-        $keys = array_intersect_key(key_get_keys_by_provider($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_provider($filter), $keys);
         break;
       case 'type_group':
-        $keys = array_intersect_key(key_get_keys_by_type_group($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_type_group($filter), $keys);
         break;
     }
   }
@@ -575,21 +566,6 @@ function key_get_key_value($config) {
   $keys[$config_id] = $key;
 
   return $key;
-}
-
-/**
- * Helper function to clear key plugin caches.
- *
- * @param string|null $type
- *   The plugin type or NULL to clear all caches.
- */
-function _key_clear_plugin_cache($type = NULL) {
-  if ($type) {
-    cache_clear_all("key:$type", 'cache');
-  }
-  else {
-    cache_clear_all('key:', 'cache', TRUE);
-  }
 }
 
 /**
@@ -933,6 +909,12 @@ function key_get_key_provider_plugin($plugin_id = NULL) {
           'allow base64 encoding' => TRUE,
           'module' => $module,
         );
+
+        // Calculate dependencies and attach any errors.
+        if ($key_provider_info['dependency callback'] && $dep_function = key_get_function($key_provider_info, 'dependency callback')) {
+          $key_provider_info['dependency errors'] = call_user_func($dep_function);
+        }
+
         $key_providers[$module_key_provider_name] = $key_provider_info;
       }
     }

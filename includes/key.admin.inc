@@ -119,9 +119,6 @@ function key_config_form($form, &$form_state, $config = array()) {
   }
   // If the form is not rebuilding.
   else {
-    // Clear the plugin cache.
-    _key_clear_plugin_cache();
-
     // Store the original key configuration.
     $form_state['storage']['original_key'] = empty($config['id']) ? NULL : $config;
 

@@ -8,7 +8,7 @@ function _drush_key_type_list() {
 
   $group = drush_get_option('group');
 
-  $plugins = key_get_plugins('key_type');
+  $plugins = key_get_plugins('key_type', TRUE);
   foreach ($plugins as $id => $plugin) {
     if (!isset($group) || $plugin['group'] == $group) {
       $row = array();
