@@ -26,8 +26,8 @@ function key_configs_list() {
     $label = $config['label'];
     $id = $config['id'];
     $description = $config['description'];
-    $key_type = key_get_key_type_plugin($config['key_type']);
-    $key_provider = key_get_key_provider_plugin($config['key_provider']);
+    $key_type = key_get_key_type_info($config['key_type']);
+    $key_provider = key_get_key_provider_info($config['key_provider']);
 
     $config_url_string = str_replace('_', '-', $id);
 
@@ -133,8 +133,8 @@ function key_config_form($form, &$form_state, $config = array()) {
   $form_state['storage']['key_config'] = $config;
 
   // Load the plugins.
-  $key_type = key_get_key_type_plugin($config['key_type']);
-  $key_provider = key_get_key_provider_plugin($config['key_provider']);
+  $key_type = key_get_key_type_info($config['key_type']);
+  $key_provider = key_get_key_provider_info($config['key_provider']);
 
   $form['label'] = array(
     '#title' => t('Key name'),
@@ -195,7 +195,7 @@ function key_config_form($form, &$form_state, $config = array()) {
     '#title_display' => FALSE,
     '#tree' => TRUE,
   );
-  if ($key_type_settings_form = key_get_function(key_get_key_type_plugin($config['key_type']), 'build configuration form')) {
+  if ($key_type_settings_form = key_get_function(key_get_key_type_info($config['key_type']), 'build configuration form')) {
     $plugin_form_state = _key_create_plugin_form_state('key_type', $form_state);
     $form['settings']['type_section']['key_type_settings'] += $key_type_settings_form(array(), $plugin_form_state);
     $form_state['values']['key_type_settings'] = $plugin_form_state['values'];
@@ -228,7 +228,7 @@ function key_config_form($form, &$form_state, $config = array()) {
     '#title_display' => FALSE,
     '#tree' => TRUE,
   );
-  if ($key_provider_settings_form = key_get_function(key_get_key_provider_plugin($config['key_provider']), 'build configuration form')) {
+  if ($key_provider_settings_form = key_get_function(key_get_key_provider_info($config['key_provider']), 'build configuration form')) {
     $plugin_form_state = _key_create_plugin_form_state('key_provider', $form_state);
     $form['settings']['provider_section']['key_provider_settings'] += $key_provider_settings_form(array(), $plugin_form_state);
     $form_state['values']['key_provider_settings'] = $plugin_form_state['values'];
@@ -250,7 +250,7 @@ function key_config_form($form, &$form_state, $config = array()) {
     '#title_display' => FALSE,
     '#tree' => TRUE,
   );
-  if ($key_input_settings_form = key_get_function(key_get_key_input_plugin($config['key_input']), 'build configuration form')) {
+  if ($key_input_settings_form = key_get_function(key_get_key_input_info($config['key_input']), 'build configuration form')) {
     $plugin_form_state = _key_create_plugin_form_state('key_input', $form_state);
     $form['settings']['input_section']['key_input_settings'] += $key_input_settings_form(array(), $plugin_form_state);
     $form_state['values']['key_input_settings'] = $plugin_form_state['values'];
@@ -294,9 +294,9 @@ function key_config_form_validate($form, &$form_state) {
   }
 
   $plugin_types = _key_get_plugin_types();
-  $key_type = key_get_key_type_plugin($form_state['values']['key_type']);
-  $key_provider = key_get_key_provider_plugin($form_state['values']['key_provider']);
-  $key_input = key_get_key_input_plugin($form_state['values']['key_input']);
+  $key_type = key_get_key_type_info($form_state['values']['key_type']);
+  $key_provider = key_get_key_provider_info($form_state['values']['key_provider']);
+  $key_input = key_get_key_input_info($form_state['values']['key_input']);
 
   // Update the key configuration in form state storage.
   foreach (array_keys($form_state['storage']['key_config']) as $id) {
@@ -372,7 +372,7 @@ function key_config_form_submit($form, &$form_state) {
     }
   }
 
-  $key_provider = key_get_key_provider_plugin($form_state['values']['key_provider']);
+  $key_provider = key_get_key_provider_info($form_state['values']['key_provider']);
   $original_key = $form_state['storage']['original_key'];
   $config = $form_state['storage']['key_config'];
 
@@ -542,9 +542,9 @@ function _key_set_key_value_data($config = array()) {
     return $key_value_data;
   }
 
-  $key_type = key_get_key_type_plugin($config['key_type']);
-  $key_provider = key_get_key_provider_plugin($config['key_provider']);
-  $key_input = key_get_key_input_plugin($config['key_input']);
+  $key_type = key_get_key_type_info($config['key_type']);
+  $key_provider = key_get_key_provider_info($config['key_provider']);
+  $key_input = key_get_key_input_info($config['key_input']);
 
   $obscure_options = array();
 
@@ -593,7 +593,7 @@ function _key_set_key_value_data($config = array()) {
  *   The key configuration.
  */
 function _key_update_key_type(&$form_state, &$config) {
-  $key_type = key_get_key_type_plugin($form_state['values']['key_type']);
+  $key_type = key_get_key_type_info($form_state['values']['key_type']);
   $original_key = isset($form_state['storage']['original_key']) ? $form_state['storage']['original_key'] : NULL;
 
   // If the original key's plugin ID matches the existing one.
@@ -622,7 +622,7 @@ function _key_update_key_type(&$form_state, &$config) {
  *   The key configuration.
  */
 function _key_update_key_provider(&$form_state, &$config) {
-  $key_provider = key_get_key_provider_plugin($form_state['values']['key_provider']);
+  $key_provider = key_get_key_provider_info($form_state['values']['key_provider']);
   $original_key = isset($form_state['storage']['original_key']) ? $form_state['storage']['original_key'] : NULL;
 
   // If the original key's plugin ID matches the existing one.
@@ -651,8 +651,8 @@ function _key_update_key_provider(&$form_state, &$config) {
  *   The key configuration.
  */
 function _key_update_key_input(&$form_state, &$config) {
-  $key_provider = key_get_key_provider_plugin($config['key_provider']);
-  $key_type = key_get_key_type_plugin($config['key_type']);
+  $key_provider = key_get_key_provider_info($config['key_provider']);
+  $key_type = key_get_key_type_info($config['key_type']);
 
   // Get the current key value data.
   $key_value_data = $form_state['storage']['key_value'];
@@ -665,7 +665,7 @@ function _key_update_key_input(&$form_state, &$config) {
 
   // Set the Key Input plugin.
   $config['key_input'] = $key_input_id;
-  $key_input = key_get_key_input_plugin($config['key_input']);
+  $key_input = key_get_key_input_info($config['key_input']);
 
   // Set the plugin's configuration to the default. It may be
   // overridden below.

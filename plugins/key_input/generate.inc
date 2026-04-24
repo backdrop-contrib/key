@@ -83,7 +83,7 @@ function key_input_generate_process_submitted_key_value(&$form_state) {
     );
   }
   else {
-    $key_type = key_get_key_type_plugin($config['key_type']);
+    $key_type = key_get_key_type_info($config['key_type']);
     $generate_function = key_get_function($key_type, 'generate key value');
     $key_value = $generate_function($config);
     $form_state['values']['generated'] = TRUE;

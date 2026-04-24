@@ -52,7 +52,7 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
   );
 
   // If this is for an encryption key.
-  $key_type = key_get_key_type_plugin($config['key_type']);
+  $key_type = key_get_key_type_info($config['key_type']);
   if ($key_type['group'] == 'encryption') {
     // Add an option to indicate that the value is Base64-encoded.
     $form['base64_encoded'] = array(

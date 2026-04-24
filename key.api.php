@@ -2,7 +2,12 @@
 
 /**
  * @file
- * Describe hooks provided by the Key module
+ * Hooks provided by the Key module
+ */
+
+/**
+ * @addtogroup hooks
+ * @{
  */
 
 /**
@@ -23,9 +28,11 @@
  *   - generate key value: The function to generate a key value.
  *   - validate key value: The function to validate a key value.
  *   - file: The file path where the plugin is defined.
+ *
+ * @see hook_key_type_info_alter()
  */
 function hook_key_type_info() {
-  $plugins['encryption'] = array(
+  $info['encryption'] = array(
     'label' => t('Encryption'),
     'description' => t('Can be used for encrypting and decrypting data. This key type has a field for selecting a key size, which is used to validate the size of the key value.'),
     'group' => 'encryption',
@@ -40,7 +47,19 @@ function hook_key_type_info() {
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_type/encryption.inc',
   );
 
-  return $plugins;
+  return $info;
+}
+
+/**
+ * Alter a key type plugin.
+ *
+ * @param array $key_types
+ *   The associative array of key type plugins.
+ *
+ * @see hook_key_type_info()
+ */
+function hook_key_type_info_alter(&$key_types) {
+  $key_types['encryption']['description'] = t('Updated description.');
 }
 
 /**
@@ -58,9 +77,11 @@ function hook_key_type_info() {
  *   - process existing key value: The function to process an existing key
  *     value.
  *   - file: The file path where the plugin is defined.
+ *
+ * @see hook_key_input_info_alter()
  */
 function hook_key_input_info() {
-  $plugins['text_field'] = array(
+  $info['text_field'] = array(
     'label' => t('Text field'),
     'description' => t('A simple text field.'),
     'default configuration' => 'key_input_text_field_default_configuration',
@@ -70,7 +91,19 @@ function hook_key_input_info() {
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/text_field.inc',
   );
 
-  return $plugins;
+  return $info;
+}
+
+/**
+ * Alter a key input plugin.
+ *
+ * @param array $key_inputs
+ *   The associative array of key input plugins.
+ *
+ * @see hook_key_input_info()
+ */
+function hook_key_input_info_alter(&$key_inputs) {
+  $key_inputs['text_field']['description'] = t('Updated description.');
 }
 
 /**
@@ -94,9 +127,11 @@ function hook_key_input_info() {
  *   - delete key value: The function to delete a key value.
  *   - obscure key value: The function to obscure a key value.
  *   - file: The file path where the plugin is defined.
+ *
+ * @see hook_key_provider_info_alter()
  */
 function hook_key_provider_info() {
-  $plugins['config'] = array(
+  $info['config'] = array(
     'label' => t('Configuration'),
     'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected. It is also possible to override the key value in <code>settings.php</code>. For example, <code>@format</code>. If using such an approach leave the key_value blank in the actual config record.', array('@format' => '$config[\'key.key.KEYNAME\'][\'key_provider_settings\'][\'key_value\'] = "THE OVERRIDDEN KEY VALUE";')),
     'storage method' => 'config',
@@ -113,5 +148,21 @@ function hook_key_provider_info() {
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/config.inc',
   );
 
-  return $plugins;
+  return $info;
 }
+
+/**
+ * Alter a key provider plugin.
+ *
+ * @param array $key_providers
+ *   The associative array of key provider plugins.
+ *
+ * @see hook_key_provider_info()
+ */
+function hook_key_provider_info_alter(&$key_providers) {
+  $key_providers['config']['description'] = t('Updated description.');
+}
+
+/**
+ * @} End of "addtogroup hooks".
+ */

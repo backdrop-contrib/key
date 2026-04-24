@@ -32,6 +32,26 @@ function key_config_info() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function key_hook_info() {
+  $hooks = array(
+    // Key Type plugins.
+    'key_type_info',
+    'key_type_info_alter',
+
+    // Key Input plugins.
+    'key_input_info',
+    'key_input_info_alter',
+
+    // Key Provider plugins.
+    'key_provider_info',
+    'key_provider_info_alter',
+  );
+  return array_fill_keys($hooks, array('group' => 'key'));
+}
+
+/**
  * Implements hook_permission().
  */
 function key_permission() {
@@ -195,13 +215,13 @@ function _key_process_key_select($element) {
 function key_get_plugins($type, $all = TRUE) {
   switch ($type) {
     case 'key_type':
-      $plugins = key_get_key_type_plugin();
+      $plugins = key_get_key_type_info();
       break;
     case 'key_input':
-      $plugins = key_get_key_input_plugin();
+      $plugins = key_get_key_input_info();
       break;
     case 'key_provider':
-      $plugins = key_get_key_provider_plugin();
+      $plugins = key_get_key_provider_info();
       break;
   }
 
@@ -235,16 +255,16 @@ function key_get_plugins_as_options($type, $all = TRUE) {
  *
  * @param string $type
  *   The type of plugin.
- * @param string $plugin_id
+ * @param string $plugin_name
  *   The id of the plugin to get.
  *
  * @return array
  *   Information about the key plugin.
  */
-function key_get_plugin($type, $plugin_id) {
+function key_get_plugin($type, $plugin_name) {
   $plugins = key_get_plugins($type);
 
-  return $plugins[$plugin_id] ?? array();
+  return $plugins[$plugin_name] ?? array();
 }
 
 /**
@@ -457,7 +477,7 @@ function key_save_key($fields, $original_config = array(), $messages = TRUE) {
 
   // If an original key configuration exists.
   if (!empty($original_config)) {
-    $original_key_provider = key_get_key_provider_plugin($original_config['key_provider']);
+    $original_key_provider = key_get_key_provider_info($original_config['key_provider']);
 
     // If the original key's provider allows setting a key value and
     // the plugin ID is different from the one that was just saved.
@@ -499,7 +519,7 @@ function key_delete_key($id, $messages = TRUE) {
   }
 
   // Load the key provider plugin.
-  $key_provider = key_get_key_provider_plugin($config['key_provider']);
+  $key_provider = key_get_key_provider_info($config['key_provider']);
 
   if ($delete_callback = key_get_function($key_provider, 'delete key value')) {
     call_user_func($delete_callback, $config);
@@ -554,7 +574,7 @@ function key_get_key_value($config) {
     return NULL;
   }
 
-  $provider = key_get_key_provider_plugin($config['key_provider']);
+  $provider = key_get_key_provider_info($config['key_provider']);
 
   // Get the function to retrieve the key.
   $key_function = key_get_function($provider, 'get key value');
@@ -606,8 +626,8 @@ function _key_config_defaults() {
   $key_type_id = 'authentication';
   $key_provider_id = 'config';
 
-  $key_type = key_get_key_type_plugin($key_type_id);
-  $key_provider = key_get_key_provider_plugin($key_provider_id);
+  $key_type = key_get_key_type_info($key_type_id);
+  $key_provider = key_get_key_provider_info($key_provider_id);
 
   $key_type_defaults = ($key_type_defaults_function = key_get_function($key_type, 'default configuration')) ? call_user_func($key_type_defaults_function) : array();
   $key_provider_defaults = ($key_provider_defaults_function = key_get_function($key_provider, 'default configuration')) ? call_user_func($key_provider_defaults_function) : array();
@@ -766,19 +786,21 @@ function _key_obscure_value($value, $options = array()) {
 /**
  * Gets information about a specific key type plugin.
  *
- * @param string|null $plugin_id
+ * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
  * @return array
- *   Information about the key plugin.
+ *   Associative array of a key type or an array of all key types if plugin
+ *   name is NULL.
  */
-function key_get_key_type_plugin($plugin_id = NULL) {
+function key_get_key_type_info($plugin_name = NULL) {
   $key_types = &backdrop_static(__FUNCTION__);
 
   if (!isset($key_types)) {
     foreach (module_implements('key_type_info') as $module) {
       $module_key_types = module_invoke($module, 'key_type_info');
       foreach ($module_key_types as $module_key_type_name => $key_type_info) {
+        // Provide defaults.
         $key_type_info += array(
           'name' => $module_key_type_name,
           'label' => '',
@@ -805,11 +827,11 @@ function key_get_key_type_plugin($plugin_id = NULL) {
     backdrop_sort($key_types);
   }
 
-  if (!isset($plugin_id)) {
+  if (!isset($plugin_name)) {
     return $key_types;
   }
-  elseif (isset($key_types[$plugin_id])) {
-    return $key_types[$plugin_id];
+  elseif (isset($key_types[$plugin_name])) {
+    return $key_types[$plugin_name];
   }
   else {
     return FALSE;
@@ -819,19 +841,21 @@ function key_get_key_type_plugin($plugin_id = NULL) {
 /**
  * Gets information about a specific key input plugin.
  *
- * @param string|null $plugin_id
+ * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
  * @return array
- *   Information about the key plugin.
+ *   Associative array of a key input or an array of all key inputs if plugin
+ *   name is NULL.
  */
-function key_get_key_input_plugin($plugin_id = NULL) {
+function key_get_key_input_info($plugin_name = NULL) {
   $key_inputs = &backdrop_static(__FUNCTION__);
 
   if (!isset($key_inputs)) {
     foreach (module_implements('key_input_info') as $module) {
       $module_key_inputs = module_invoke($module, 'key_input_info');
       foreach ($module_key_inputs as $module_key_input_name => $key_input_info) {
+        // Provide defaults.
         $key_input_info += array(
           'name' => $module_key_input_name,
           'label' => '',
@@ -854,11 +878,11 @@ function key_get_key_input_plugin($plugin_id = NULL) {
     backdrop_sort($key_inputs);
   }
 
-  if (!isset($plugin_id)) {
+  if (!isset($plugin_name)) {
     return $key_inputs;
   }
-  elseif (isset($key_inputs[$plugin_id])) {
-    return $key_inputs[$plugin_id];
+  elseif (isset($key_inputs[$plugin_name])) {
+    return $key_inputs[$plugin_name];
   }
   else {
     return FALSE;
@@ -868,19 +892,21 @@ function key_get_key_input_plugin($plugin_id = NULL) {
 /**
  * Gets information about a specific key provider plugin.
  *
- * @param string|null $plugin_id
+ * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
  * @return array
- *   Information about the key plugin.
+ *   Associative array of a key provider or an array of all key providers if
+ *   plugin name is NULL.
  */
-function key_get_key_provider_plugin($plugin_id = NULL) {
+function key_get_key_provider_info($plugin_name = NULL) {
   $key_providers = &backdrop_static(__FUNCTION__);
 
   if (!isset($key_providers)) {
     foreach (module_implements('key_provider_info') as $module) {
       $module_key_providers = module_invoke($module, 'key_provider_info');
       foreach ($module_key_providers as $module_key_provider_name => $key_provider_info) {
+        // Provide defaults.
         $key_provider_info += array(
           'name' => $module_key_provider_name,
           'label' => '',
@@ -922,144 +948,15 @@ function key_get_key_provider_plugin($plugin_id = NULL) {
     backdrop_sort($key_providers);
   }
 
-  if (!isset($plugin_id)) {
+  if (!isset($plugin_name)) {
     return $key_providers;
   }
-  elseif (isset($key_providers[$plugin_id])) {
-    return $key_providers[$plugin_id];
+  elseif (isset($key_providers[$plugin_name])) {
+    return $key_providers[$plugin_name];
   }
   else {
     return FALSE;
   }
-}
-
-/**
- * Implements hook_key_type_info().
- */
-function key_key_type_info() {
-  $plugins['encryption'] = array(
-    'label' => t('Encryption'),
-    'description' => t('Can be used for encrypting and decrypting data. This key type has a field for selecting a key size, which is used to validate the size of the key value.'),
-    'group' => 'encryption',
-    'key value' => array(
-      'plugin' => 'text_field',
-    ),
-    'default configuration' => 'key_type_encryption_default_configuration',
-    'build configuration form' => 'key_type_encryption_build_configuration_form',
-    'validate configuration form' => 'key_type_encryption_validate_configuration_form',
-    'generate key value' => 'key_type_encryption_generate_key_value',
-    'validate key value' => 'key_type_encryption_validate_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_type/encryption.inc',
-  );
-
-  $plugins['authentication'] = array(
-    'label' => t('Authentication'),
-    'description' => t('Use for a password or API key. (A generic key type that does not belong to any other defined key type.)'),
-    'group' => 'authentication',
-    'key value' => array(
-      'plugin' => 'textarea_field',
-    ),
-  );
-
-  return $plugins;
-}
-
-/**
- * Implements hook_key_input_info().
- */
-function key_key_input_info() {
-  $plugins['generate'] = array(
-    'label' => t('Generate'),
-    'description' => t('Generates a new key value.'),
-    'default configuration' => 'key_input_generate_default_configuration',
-    'build configuration form' => 'key_input_generate_build_configuration_form',
-    'process submitted key value' => 'key_input_generate_process_submitted_key_value',
-    'process existing key value' => '_key_default_process_existing_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/generate.inc',
-  );
-
-  $plugins['none'] = array(
-    'label' => t('None'),
-    'description' => t("A key input for providers that don't accept a value."),
-    'build configuration form' => 'key_input_none_build_configuration_form',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/none.inc',
-  );
-
-  $plugins['text_field'] = array(
-    'label' => t('Text field'),
-    'description' => t('A simple text field.'),
-    'default configuration' => 'key_input_text_field_default_configuration',
-    'build configuration form' => 'key_input_text_field_build_configuration_form',
-    'process submitted key value' => '_key_default_process_submitted_key_value',
-    'process existing key value' => '_key_default_process_existing_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/text_field.inc',
-  );
-
-  $plugins['textarea_field'] = array(
-    'label' => t('Textarea field'),
-    'description' => t('A simple textarea field.'),
-    'default configuration' => 'key_input_textarea_field_default_configuration',
-    'build configuration form' => 'key_input_textarea_field_build_configuration_form',
-    'process submitted key value' => '_key_default_process_submitted_key_value',
-    'process existing key value' => '_key_default_process_existing_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/textarea_field.inc',
-  );
-
-  return $plugins;
-}
-
-/**
- * Implements hook_key_provider_info().
- */
-function key_key_provider_info() {
-  $plugins['config'] = array(
-    'label' => t('Configuration'),
-    'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected. It is also possible to override the key value in <code>settings.php</code>. For example, <code>@format</code>. If using such an approach leave the key_value blank in the actual config record.', array('@format' => '$config[\'key.key.KEYNAME\'][\'key_provider_settings\'][\'key_value\'] = "THE OVERRIDDEN KEY VALUE";')),
-    'storage method' => 'config',
-    'key value' => array(
-      'accepted' => TRUE,
-      'required' => FALSE,
-    ),
-    'default configuration' => 'key_provider_config_default_configuration',
-    'build configuration form' => 'key_provider_config_build_configuration_form',
-    'get key value' => 'key_provider_config_get_key_value',
-    'set key value' => 'key_provider_config_set_key_value',
-    'delete key value' => 'key_provider_config_delete_key_value',
-    'obscure key value' => 'key_provider_config_obscure_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/config.inc',
-  );
-
-  $plugins['env'] = array(
-    'label' => t('Environment'),
-    'description' => t('The Environment key provider allows a key to be stored in an environment variable.'),
-    'storage method' => 'env',
-    'key value' => array(
-      'accepted' => FALSE,
-      'required' => FALSE,
-    ),
-    'default configuration' => 'key_provider_env_default_configuration',
-    'build configuration form' => 'key_provider_env_build_configuration_form',
-    'validate configuration form' => 'key_provider_env_validate_configuration_form',
-    'get key value' => 'key_provider_env_get_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/env.inc',
-  );
-
-  $plugins['file'] = array(
-    'label' => t('File'),
-    'description' => t('The File key provider allows a key to be stored in a file, preferably outside of the web root.'),
-    'storage method' => 'file',
-    'key value' => array(
-      'accepted' => FALSE,
-      'required' => FALSE,
-    ),
-    'default configuration' => 'key_provider_file_default_configuration',
-    'build configuration form' => 'key_provider_file_build_configuration_form',
-    'validate configuration form' => 'key_provider_file_validate_configuration_form',
-    'get key value' => 'key_provider_file_get_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/file.inc',
-  );
-
-  return $plugins;
 }
 
 /**
