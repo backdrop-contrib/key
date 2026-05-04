@@ -658,8 +658,8 @@ function key_get_key_value($config) {
     $config = key_get_key($config_id);
   }
 
-  // If the configuration doesn't exist, return NULL.
-  if (!isset($config)) {
+  // config_get() returns [] for a missing config, so isset() doesn't help.
+  if (empty($config['key_provider'])) {
     return NULL;
   }
 
