@@ -510,7 +510,14 @@ function key_get_key_names_as_options($filters = array(), $reset = FALSE) {
  *   A key configuration.
  */
 function key_get_key($id) {
-  return config_get('key.key.' . $id);
+  $name = 'key.key.' . $id;
+  $config = config_get($name);
+
+  // Merge settings.php overrides.
+  if (!empty($GLOBALS['config'][$name])) {
+    $config = array_replace_recursive($config, $GLOBALS['config'][$name]);
+  }
+  return $config;
 }
 
 /**
