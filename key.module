@@ -416,12 +416,45 @@ function key_get_key_names_as_options($filters = array()) {
  *
  * @param string $id
  *   The machine name of the configuration to get.
+ * @param bool $override
+ *   TRUE if overrides (typically in the settings file) should be applied.
  *
  * @return array
  *   A key configuration.
  */
-function key_get_key($id) {
-  return config_get('key.key.' . $id);
+function key_get_key($id, $override = FALSE) {
+  $config = config('key.key.' . $id);
+  $config_data = $config->getData();
+
+  if ($override) {
+    $config_data = _key_set_key_overrides($config_data, $config);
+  }
+
+  return $config_data;
+}
+
+/**
+ * Recursive function to apply configuration overrides to the configuration
+ * data array.
+ *
+ * @param array $config_data
+ * @param Config $config
+ * @param string $chained_key_base
+ *
+ * @return array
+ */
+function _key_set_key_overrides(&$config_data, $config, $chained_key_base = '') {
+  foreach ($config_data as $key => $value) {
+    $chained_key = ($chained_key_base) ? $chained_key_base . '.' . $key : $key;
+    if (is_array($value)) {
+      $config_data[$key] = _key_set_key_overrides($config_data[$key], $config, $chained_key);
+    }
+    else {
+      $config_data[$key] = $config->get($chained_key);
+    }
+  }
+
+  return $config_data;
 }
 
 /**
@@ -566,7 +599,8 @@ function key_get_key_value($config) {
   }
 
   if ($config_id && !is_array($config)) {
-    $config = key_get_key($config_id);
+    // Include overrides.
+    $config = key_get_key($config_id, TRUE);
   }
 
   // If the configuration doesn't exist, return NULL.
