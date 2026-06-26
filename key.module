@@ -153,7 +153,7 @@ function key_element_info() {
 /**
  * Title callback for the key configuration edit page.
  *
- * @param string $config
+ * @param array $config
  *   The configuration being edited.
  *
  * @return string
