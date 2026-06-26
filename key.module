@@ -646,7 +646,7 @@ function key_get_key_value($config) {
     $config_id = $config;
   }
   else {
-    $config_id = isset($config['id']) ? $config['id'] : '';
+    $config_id = $config['id'] ?? '';
   }
 
   // If the key has already been retrieved during this page load, return it.
@@ -654,11 +654,11 @@ function key_get_key_value($config) {
     return $keys[$config_id];
   }
 
-  if (!is_array($config)) {
+  if ($config_id && !is_array($config)) {
     $config = key_get_key($config_id);
   }
 
-  // config_get() returns [] for a missing config, so isset() doesn't help.
+  // If the configuration doesn't exist, return NULL.
   if (empty($config['key_provider'])) {
     return NULL;
   }
