@@ -5,20 +5,6 @@
  * Plugin definition for the File key provider.
  */
 
-$plugin = array(
-  'label' => t('File'),
-  'description' => t('The File key provider allows a key to be stored in a file, preferably outside of the web root.'),
-  'storage method' => 'file',
-  'key value' => array(
-    'accepted' => FALSE,
-    'required' => FALSE,
-  ),
-  'default configuration' => 'key_provider_file_default_configuration',
-  'build configuration form' => 'key_provider_file_build_configuration_form',
-  'validate configuration form' => 'key_provider_file_validate_configuration_form',
-  'get key value' => 'key_provider_file_get_key_value',
-);
-
 /**
  * The default plugin configuration.
  *
@@ -66,7 +52,7 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
   );
 
   // If this is for an encryption key.
-  $key_type = key_get_plugin('key_type', $config['key_type']);
+  $key_type = key_get_key_type_info($config['key_type']);
   if ($key_type['group'] == 'encryption') {
     // Add an option to indicate that the value is Base64-encoded.
     $form['base64_encoded'] = array(
