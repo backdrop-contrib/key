@@ -41,10 +41,10 @@ function key_configs_list() {
     $row = array(theme('key_configs_list_description', $variables));
 
     // Set the key type column.
-    $row[] = array('data' => $key_type['label']);
+    $row[] = array('data' => $key_type['label'] ?? '');
 
     // Set the key provider column.
-    $row[] = array('data' => $key_provider['label']);
+    $row[] = array('data' => $key_provider['label'] ?? '');
 
     $links = array();
     $links['configure'] = array(

@@ -789,7 +789,7 @@ function _key_obscure_value($value, $options = array()) {
  * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
- * @return array
+ * @return array|false
  *   Associative array of a key type or an array of all key types if plugin
  *   name is NULL.
  */
@@ -844,7 +844,7 @@ function key_get_key_type_info($plugin_name = NULL) {
  * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
- * @return array
+ * @return array|false
  *   Associative array of a key input or an array of all key inputs if plugin
  *   name is NULL.
  */
@@ -895,7 +895,7 @@ function key_get_key_input_info($plugin_name = NULL) {
  * @param string|null $plugin_name
  *   The id of the plugin to get.
  *
- * @return array
+ * @return array|false
  *   Associative array of a key provider or an array of all key providers if
  *   plugin name is NULL.
  */
