@@ -134,6 +134,13 @@ Alternatively, you could also create your own 32 character string and search
 online for a site that can base64 encode it. Then save it to text file that is
 outside the web root and enter the path to the key in the key settings.
 
+## Overriding per environment
+
+The key value can be overridden per environment per key by adding the following
+to the settings file. Replace with the actual key name:
+
+`$settings['key_override_KEYNAME'] = 'random value';`
+
 ## Integrating Modules
 
 The following modules have not been ported to Backdrop at this time, but allow
