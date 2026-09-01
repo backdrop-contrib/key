@@ -116,6 +116,21 @@ function key_key_provider_info() {
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/env.inc',
   );
 
+  $info['settings'] = array(
+    'label' => t('Settings'),
+    'description' => t('The settings key provider allows a key to be retrieved from the Backdrop <a href="@settings">settings file</a> which usually resides in the webroot or in <code>sites/*/default</code>.', array('@bee' => 'https://docs.backdropcms.org/api/backdrop/settings.php/1')),
+    'storage method' => 'settings',
+    'key value' => array(
+      'accepted' => FALSE,
+      'required' => FALSE,
+    ),
+    'default configuration' => 'key_provider_settings_default_configuration',
+    'build configuration form' => 'key_provider_settings_build_configuration_form',
+    'validate configuration form' => 'key_provider_settings_validate_configuration_form',
+    'get key value' => 'key_provider_settings_get_key_value',
+    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/settings.inc',
+  );
+
   $info['state'] = array(
     'label' => t('State'),
     'description' => t('This key provider uses a key stored in the Backdrop state system. The state system stores values in the database, so keys stored this way should be considered to have the same security properties as database-stored configuration. This provider is suitable for development keys, API tokens with limited permissions, or other keys where database storage is acceptable. Meant to be used with a state variable set by another module, or with the commandline tool, <a href="@bee">Bee</a>.', array('@bee' => 'https://backdropcms.org/project/bee')),
