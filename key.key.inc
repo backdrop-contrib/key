@@ -86,7 +86,7 @@ function key_key_input_info() {
 function key_key_provider_info() {
   $info['config'] = array(
     'label' => t('Configuration'),
-    'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected. It is also possible to override the key value in <code>settings.php</code>. For example, <code>@format</code>. If using such an approach leave the key_value blank in the actual config record.', array('@format' => '$config[\'key.key.KEYNAME\'][\'key_provider_settings\'][\'key_value\'] = "THE OVERRIDDEN KEY VALUE";')),
+    'description' => t('The Configuration key provider stores the key in configuration. To make this relatively more secure set configuration directories to be outside the webroot (if using file storage of configuration, not database storage). And ensure any configuration backups and version control artifacts are protected.'),
     'storage method' => 'config',
     'key value' => array(
       'accepted' => TRUE,
@@ -116,9 +116,24 @@ function key_key_provider_info() {
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/env.inc',
   );
 
+  $info['settings'] = array(
+    'label' => t('Settings'),
+    'description' => t('The Settings key provider allows a key to be retrieved from the Backdrop <a href="@settings">settings file</a> which usually resides in the webroot or in <code>sites/*/default</code>. The variable should be in this format: <code>$settings[\'my_private_key\'] = \'\';</code>.', array('@settings' => 'https://docs.backdropcms.org/api/backdrop/settings.php/1')),
+    'storage method' => 'settings',
+    'key value' => array(
+      'accepted' => FALSE,
+      'required' => FALSE,
+    ),
+    'default configuration' => 'key_provider_settings_default_configuration',
+    'build configuration form' => 'key_provider_settings_build_configuration_form',
+    'validate configuration form' => 'key_provider_settings_validate_configuration_form',
+    'get key value' => 'key_provider_settings_get_key_value',
+    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/settings.inc',
+  );
+
   $info['state'] = array(
     'label' => t('State'),
-    'description' => t('This key provider uses a key stored in the Backdrop state system. The state system stores values in the database, so keys stored this way should be considered to have the same security properties as database-stored configuration. This provider is suitable for development keys, API tokens with limited permissions, or other keys where database storage is acceptable. Meant to be used with a state variable set by another module, or with the commandline tool, <a href="@bee">Bee</a>.', array('@bee' => 'https://backdropcms.org/project/bee')),
+    'description' => t('The State key provider uses a key stored in the Backdrop state system. The state system stores values in the database, so keys stored this way should be considered to have the same security properties as database-stored configuration. This provider is suitable for development keys, API tokens with limited permissions, or other keys where database storage is acceptable. Meant to be used with a state variable set by another module, or with the commandline tool, <a href="@bee">Bee</a>.', array('@bee' => 'https://backdropcms.org/project/bee')),
     'storage method' => 'state',
     'key value' => array(
       'accepted' => FALSE,
