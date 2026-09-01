@@ -118,18 +118,16 @@ function key_key_provider_info() {
 
   $info['state'] = array(
     'label' => t('State'),
-    'description' => t('This key provider stores the key in the Backdrop state system. The state system stores values in the database, so keys stored this way should be considered to have the same security properties as database-stored configuration. This provider is suitable for development keys, API tokens with limited permissions, or other keys where database storage is acceptable.'),
+    'description' => t('This key provider uses a key stored in the Backdrop state system. The state system stores values in the database, so keys stored this way should be considered to have the same security properties as database-stored configuration. This provider is suitable for development keys, API tokens with limited permissions, or other keys where database storage is acceptable. Meant to be used with a state variable set by another module, or with the commandline tool, <a href="@bee">Bee</a>.', array('@bee' => 'https://backdropcms.org/project/bee')),
     'storage method' => 'state',
     'key value' => array(
-      'accepted' => TRUE,
-      'required' => TRUE,
+      'accepted' => FALSE,
+      'required' => FALSE,
     ),
     'default configuration' => 'key_provider_state_default_configuration',
     'build configuration form' => 'key_provider_state_build_configuration_form',
     'validate configuration form' => 'key_provider_state_validate_configuration_form',
     'get key value' => 'key_provider_state_get_key_value',
-    'set key value' => 'key_provider_state_set_key_value',
-    'delete key value' => 'key_provider_state_delete_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/state.inc',
   );
 
