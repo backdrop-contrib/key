@@ -98,7 +98,11 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
   if ($file_location_generate) {
     // Check that private file system is set.
     if (!config_get('system.core', 'file_private_path')) {
-      form_set_error(NULL, t('The private file system needs to be set in order for the private key provider to save this key.'));
+      form_error($form, t('The <a href="@filesystem_settings">Private file system path</a> (e.g., %str) needs to be set in order for the private key provider to save this key.',
+        array(
+          '@filesystem_settings' => url('admin/config/media/file-system'),
+          '%str' => 'private://',
+        )));
       return;
     }
 
@@ -106,7 +110,11 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
       $filename = _key_create_private_key_file();
 
       if (!$filename) {
-        form_set_error(NULL, t('Unable to create the private key file.'));
+        form_error($form, t('Unable to create the private key file. Ensure that the <a href="@filesystem_settings">Private file system path</a> (e.g., %str) has been set.',
+          array(
+            '@filesystem_settings' => url('admin/config/media/file-system'),
+            '%str' => 'private://',
+          )));
         return;
       }
 
