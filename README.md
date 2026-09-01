@@ -48,8 +48,7 @@ The key value can be set, edited, and viewed through the administrative
 interface, making it useful during site development. There are ways to make this
 relatively more secure by putting configuration directories outside the webroot.
 And ensure that any configuration backups or version control artifacts are
-protected. Or override the key value in `settings.php`. For example, `$config['key.key.KEYNAME']['key_provider_settings']['key_value'] = "THE OVERRIDDEN KEY VALUE";`.
-If using such an approach leave the key_value blank in the actual config record.
+protected.
 
 However, for better security on production websites, keys should generally not
 be stored in configuration. Keys using the Configuration provider are not obscured
@@ -62,7 +61,19 @@ You will be required to manually create this file with the key and place
 it on your server. Storing the key in a file outside of the web root is
 generally more secure than storing it in the database.
 
-**Environment:** Stores the key in an environment variable. Some hosts provide
+**Settings:** The settings key provider allows a key to be retrieved from the
+Backdrop [settings file](https://docs.backdropcms.org/api/backdrop/settings.php/1)
+which usually resides in the webroot or in `sites/*/default`. The variable should
+be in this format: `$settings['my_private_key'] = '';`.
+
+**State:** The State key provider uses a key stored in the Backdrop state system.
+The state system stores values in the database, so keys stored this way should be
+considered to have the same security properties as database-stored configuration.
+This provider is suitable for development keys, API tokens with limited permissions,
+or other keys where database storage is acceptable. Meant to be used with a state
+variable set by another module, or with the commandline tool, [Bee](https://backdropcms.org/project/bee).
+
+**Environment:** References a key in an environment variable. Some hosts provide
 a UI for setting environment variables which are available during runtime. Some
 local development tools, such as Lando, also allow setting environment variables.
 Another approach is to put the keys in a `.env` file. This will require some
@@ -83,8 +94,7 @@ use Symfony\Component\Dotenv\Dotenv;
 The Configuration, File and Environment provider plugins support storing the
 key with Base64 encoding.
 
-Key providers are Plugin Manager plugins, so new providers can be defined
-easily.
+Key providers are plugins, so new providers can be defined easily.
 
 ### Key input
 
@@ -105,7 +115,7 @@ such as SSH keys.
 The Text Field and Textarea Field input plugins support the submission
 of keys that are Base64-encoded.
 
-Key inputs are Plugin Manager plugins, so new inputs can be defined easily.
+Key inputs are plugins, so new inputs can be defined easily.
 
 ## Generating a Random Encryption Key
 
