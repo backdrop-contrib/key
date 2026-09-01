@@ -32,6 +32,26 @@ function key_config_info() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function key_hook_info() {
+  $hooks = array(
+    // Key Type plugins.
+    'key_type_info',
+    'key_type_info_alter',
+
+    // Key Input plugins.
+    'key_input_info',
+    'key_input_info_alter',
+
+    // Key Provider plugins.
+    'key_provider_info',
+    'key_provider_info_alter',
+  );
+  return array_fill_keys($hooks, array('group' => 'key'));
+}
+
+/**
  * Implements hook_permission().
  */
 function key_permission() {
@@ -107,96 +127,6 @@ function key_theme() {
 }
 
 /**
- * Implements hook_plugin_manager_directory().
- */
-function key_plugin_manager_directory($module, $plugin) {
-  if ($module == 'key' && !empty($plugin)) {
-    return "plugins/$plugin";
-  }
-}
-
-/**
- * Implements hook_plugin_manager_plugin_type().
- */
-function key_plugin_manager_plugin_type() {
-  $plugins['key_type'] = array(
-    'cache' => TRUE,
-    'cache table' => 'cache',
-    'process' => '_key_plugin_process',
-    'defaults' => array(
-      'label' => '',
-      'description' => '',
-      'group' => 'none',
-      'key value' => array(
-        'plugin' => 'text_field',
-      ),
-      'default configuration' => NULL,
-      'build configuration form' => NULL,
-      'validate configuration form' => NULL,
-      'submit configuration form' => NULL,
-      'build delete form' => NULL,
-      'validate delete form' => NULL,
-      'submit delete form' => NULL,
-      'generate key value' => NULL,
-      'validate key value' => NULL,
-    ),
-  );
-
-  $plugins['key_provider'] = array(
-    'cache' => TRUE,
-    'cache table' => 'cache',
-    'process' => '_key_plugin_process',
-    'defaults' => array(
-      'label' => '',
-      'description' => '',
-      'storage method' => '',
-      'key value' => array(
-        'accepted' => FALSE,
-        'required' => FALSE,
-        'editable' => FALSE,
-      ),
-      'default configuration' => NULL,
-      'build configuration form' => NULL,
-      'validate configuration form' => NULL,
-      'submit configuration form' => NULL,
-      'build delete form' => NULL,
-      'validate delete form' => NULL,
-      'submit delete form' => NULL,
-      'get key value' => NULL,
-      'set key value' => NULL,
-      'delete key value' => NULL,
-      'obscure key value' => '_key_default_obscure_key_value',
-      'dependency callback' => NULL,
-      'dependency errors' => NULL,
-      'key value form' => NULL,
-      'key value obscure' => NULL,
-      'allow base64 encoding' => TRUE,
-    ),
-  );
-
-  $plugins['key_input'] = array(
-    'cache' => TRUE,
-    'cache table' => 'cache',
-    'process' => '_key_plugin_process',
-    'defaults' => array(
-      'label' => '',
-      'description' => '',
-      'default configuration' => NULL,
-      'build configuration form' => NULL,
-      'validate configuration form' => NULL,
-      'submit configuration form' => NULL,
-      'build delete form' => NULL,
-      'validate delete form' => NULL,
-      'submit delete form' => NULL,
-      'process submitted key value' => NULL,
-      'process existing key value' => NULL,
-    ),
-  );
-
-  return $plugins;
-}
-
-/**
  * Implements hook_element_info().
  */
 function key_element_info() {
@@ -223,7 +153,7 @@ function key_element_info() {
 /**
  * Title callback for the key configuration edit page.
  *
- * @param string $config
+ * @param array $config
  *   The configuration being edited.
  *
  * @return string
@@ -278,23 +208,22 @@ function _key_process_key_select($element) {
  *   The type of plugin.
  * @param bool $all
  *   A flag indicating whether to include plugins with unmet dependencies.
- * @param bool $reset
- *   A flag indicating whether to clear the plugin cache. Otherwise, stale
- *   data may be returned if plugin properties have changed.
  *
  * @return array
  *   Information about all key plugins of the requested type.
  */
-function key_get_plugins($type, $all = TRUE, $reset = FALSE) {
-  if (!in_array($type, _key_get_plugin_types())) {
-    return array();
+function key_get_plugins($type, $all = TRUE) {
+  switch ($type) {
+    case 'key_type':
+      $plugins = key_get_key_type_info();
+      break;
+    case 'key_input':
+      $plugins = key_get_key_input_info();
+      break;
+    case 'key_provider':
+      $plugins = key_get_key_provider_info();
+      break;
   }
-
-  if ($reset) {
-    _key_clear_plugin_cache($type);
-  }
-
-  $plugins = plugin_manager_get_plugins('key', $type);
 
   return $all ? $plugins : array_filter($plugins, '_key_plugin_is_valid');
 }
@@ -306,15 +235,12 @@ function key_get_plugins($type, $all = TRUE, $reset = FALSE) {
  *   The type of plugin.
  * @param bool $all
  *   A flag indicating whether to include plugins with unmet dependencies.
- * @param bool $reset
- *   A flag indicating whether to clear the plugin cache. Otherwise, stale
- *   data may be returned if plugin properties have changed.
  *
  * @return array
  *   An array of key plugins, with ids for keys and labels for values.
  */
-function key_get_plugins_as_options($type, $all = TRUE, $reset = FALSE) {
-  $plugins = key_get_plugins($type, $all, $reset);
+function key_get_plugins_as_options($type, $all = TRUE) {
+  $plugins = key_get_plugins($type, $all);
   $options = array();
 
   foreach ($plugins as $id => $plugin) {
@@ -329,21 +255,16 @@ function key_get_plugins_as_options($type, $all = TRUE, $reset = FALSE) {
  *
  * @param string $type
  *   The type of plugin.
- * @param string $plugin_id
+ * @param string $plugin_name
  *   The id of the plugin to get.
- * @param bool $reset
- *   A flag indicating whether to clear the plugin cache. Otherwise, stale
- *   data may be returned if plugin properties have changed.
  *
  * @return array
  *   Information about the key plugin.
  */
-function key_get_plugin($type, $plugin_id, $reset = FALSE) {
-  if (!in_array($type, _key_get_plugin_types())) {
-    return array();
-  }
+function key_get_plugin($type, $plugin_name) {
+  $plugins = key_get_plugins($type);
 
-  return plugin_manager_get_plugins('key', $type, $plugin_id);
+  return $plugins[$plugin_name] ?? array();
 }
 
 /**
@@ -368,13 +289,11 @@ function key_get_keys() {
  *
  * @param string $key_provider_id
  *   The key provider ID to use.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_provider($key_provider_id, $reset = FALSE) {
+function key_get_keys_by_provider($key_provider_id) {
   $filtered_keys = array();
   $keys = key_get_keys();
 
@@ -392,13 +311,11 @@ function key_get_keys_by_provider($key_provider_id, $reset = FALSE) {
  *
  * @param string $key_type_id
  *   The key type ID to use.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_type($key_type_id, $reset = FALSE) {
+function key_get_keys_by_type($key_type_id) {
   $filtered_keys = array();
   $keys = key_get_keys();
 
@@ -416,16 +333,14 @@ function key_get_keys_by_type($key_type_id, $reset = FALSE) {
  *
  * @param string $storage_method
  *   The storage method of the key provider.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_storage_method($storage_method, $reset = FALSE) {
+function key_get_keys_by_storage_method($storage_method) {
   $filtered_keys = array();
   $keys = key_get_keys();
-  $providers = key_get_plugins('key_provider', TRUE, $reset);
+  $providers = key_get_plugins('key_provider');
 
   foreach ($keys as $id => $key) {
     if ($providers[$key['key_provider']]['storage method'] == $storage_method) {
@@ -441,16 +356,14 @@ function key_get_keys_by_storage_method($storage_method, $reset = FALSE) {
  *
  * @param string $type_group
  *   The key type group on which to filter.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of keys indexed by their IDs.
  */
-function key_get_keys_by_type_group($type_group, $reset = FALSE) {
+function key_get_keys_by_type_group($type_group) {
   $filtered_keys = array();
   $keys = key_get_keys();
-  $types = key_get_plugins('key_type', TRUE, $reset);
+  $types = key_get_plugins('key_type');
 
   foreach ($keys as $id => $key) {
     if ($types[$key['key_type']]['group'] == $type_group) {
@@ -466,13 +379,11 @@ function key_get_keys_by_type_group($type_group, $reset = FALSE) {
  *
  * @param array $filters
  *   An array of filters to apply to the list of options.
- * @param bool $reset
- *   A flag to force the configurations to be retrieved from the database.
  *
  * @return array
  *   An array of key names, indexed by id.
  */
-function key_get_key_names_as_options($filters = array(), $reset = FALSE) {
+function key_get_key_names_as_options($filters = array()) {
   $options = array();
 
   $keys = key_get_keys();
@@ -480,13 +391,13 @@ function key_get_key_names_as_options($filters = array(), $reset = FALSE) {
   foreach ($filters as $index => $filter) {
     switch ($index) {
       case 'type':
-        $keys = array_intersect_key(key_get_keys_by_type($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_type($filter), $keys);
         break;
       case 'provider':
-        $keys = array_intersect_key(key_get_keys_by_provider($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_provider($filter), $keys);
         break;
       case 'type_group':
-        $keys = array_intersect_key(key_get_keys_by_type_group($filter, $reset), $keys);
+        $keys = array_intersect_key(key_get_keys_by_type_group($filter), $keys);
         break;
     }
   }
@@ -566,13 +477,13 @@ function key_save_key($fields, $original_config = array(), $messages = TRUE) {
 
   // If an original key configuration exists.
   if (!empty($original_config)) {
-    $original_key_provider = key_get_plugin('key_provider', $original_config['key_provider']);
+    $original_key_provider = key_get_key_provider_info($original_config['key_provider']);
 
     // If the original key's provider allows setting a key value and
     // the plugin ID is different from the one that was just saved.
     if ($original_key_provider['key value']['accepted'] && $original_config['key_provider'] != $key_config['key_provider']) {
       // Allow the original key's provider to delete the key value.
-      if ($delete_callback = plugin_manager_get_function($original_key_provider, 'delete key value')) {
+      if ($delete_callback = key_get_function($original_key_provider, 'delete key value')) {
         call_user_func($delete_callback, $original_config);
       }
     }
@@ -608,9 +519,9 @@ function key_delete_key($id, $messages = TRUE) {
   }
 
   // Load the key provider plugin.
-  $key_provider = key_get_plugin('key_provider', $config['key_provider']);
+  $key_provider = key_get_key_provider_info($config['key_provider']);
 
-  if ($delete_callback = plugin_manager_get_function($key_provider, 'delete key value')) {
+  if ($delete_callback = key_get_function($key_provider, 'delete key value')) {
     call_user_func($delete_callback, $config);
   }
 
@@ -646,7 +557,7 @@ function key_get_key_value($config) {
     $config_id = $config;
   }
   else {
-    $config_id = isset($config['id']) ? $config['id'] : '';
+    $config_id = $config['id'] ?? '';
   }
 
   // If the key has already been retrieved during this page load, return it.
@@ -654,19 +565,19 @@ function key_get_key_value($config) {
     return $keys[$config_id];
   }
 
-  if (!is_array($config)) {
+  if ($config_id && !is_array($config)) {
     $config = key_get_key($config_id);
   }
 
   // If the configuration doesn't exist, return NULL.
-  if (!isset($config)) {
+  if (empty($config['key_provider'])) {
     return NULL;
   }
 
-  $provider = key_get_plugin('key_provider', $config['key_provider']);
+  $provider = key_get_key_provider_info($config['key_provider']);
 
   // Get the function to retrieve the key.
-  $key_function = plugin_manager_get_function($provider, 'get key value');
+  $key_function = key_get_function($provider, 'get key value');
 
   // Retrieve the key.
   $key = call_user_func($key_function, $config);
@@ -675,36 +586,6 @@ function key_get_key_value($config) {
   $keys[$config_id] = $key;
 
   return $key;
-}
-
-/**
- * Helper function to clear key plugin caches.
- *
- * @param string|null $type
- *   The plugin type or NULL to clear all caches.
- */
-function _key_clear_plugin_cache($type = NULL) {
-  if ($type) {
-    cache_clear_all("plugins:key:$type", 'cache');
-  }
-  else {
-    cache_clear_all('plugins:key:', 'cache', TRUE);
-  }
-}
-
-/**
- * Callback function to process key plugins.
- *
- * @param array $plugin
- *   A key plugin.
- * @param array $info
- *   Information about the plugin.
- */
-function _key_plugin_process(&$plugin, $info) {
-  // Check dependencies and attach any errors to the plugin.
-  if ($dependency_function = plugin_manager_get_function($plugin, 'dependency callback')) {
-    $plugin['dependency errors'] = call_user_func($dependency_function);
-  }
 }
 
 /**
@@ -745,11 +626,11 @@ function _key_config_defaults() {
   $key_type_id = 'authentication';
   $key_provider_id = 'config';
 
-  $key_type = key_get_plugin('key_type', $key_type_id);
-  $key_provider = key_get_plugin('key_provider', $key_provider_id);
+  $key_type = key_get_key_type_info($key_type_id);
+  $key_provider = key_get_key_provider_info($key_provider_id);
 
-  $key_type_defaults = ($key_type_defaults_function = plugin_manager_get_function($key_type, 'default configuration')) ? call_user_func($key_type_defaults_function) : array();
-  $key_provider_defaults = ($key_provider_defaults_function = plugin_manager_get_function($key_provider, 'default configuration')) ? call_user_func($key_provider_defaults_function) : array();
+  $key_type_defaults = ($key_type_defaults_function = key_get_function($key_type, 'default configuration')) ? call_user_func($key_type_defaults_function) : array();
+  $key_provider_defaults = ($key_provider_defaults_function = key_get_function($key_provider, 'default configuration')) ? call_user_func($key_provider_defaults_function) : array();
 
   $defaults = array(
     'id' => '',
@@ -900,4 +781,208 @@ function _key_obscure_value($value, $options = array()) {
   }
 
   return $obscured_chars . $visible_right_chars;
+}
+
+/**
+ * Gets information about a specific key type plugin.
+ *
+ * @param string|null $plugin_name
+ *   The id of the plugin to get.
+ *
+ * @return array|false
+ *   Associative array of a key type or an array of all key types if plugin
+ *   name is NULL.
+ */
+function key_get_key_type_info($plugin_name = NULL) {
+  $key_types = &backdrop_static(__FUNCTION__);
+
+  if (!isset($key_types)) {
+    foreach (module_implements('key_type_info') as $module) {
+      $module_key_types = module_invoke($module, 'key_type_info');
+      foreach ($module_key_types as $module_key_type_name => $key_type_info) {
+        // Provide defaults.
+        $key_type_info += array(
+          'name' => $module_key_type_name,
+          'label' => '',
+          'description' => '',
+          'group' => 'none',
+          'key value' => array(
+            'plugin' => 'text_field',
+          ),
+          'default configuration' => NULL,
+          'build configuration form' => NULL,
+          'validate configuration form' => NULL,
+          'submit configuration form' => NULL,
+          'build delete form' => NULL,
+          'validate delete form' => NULL,
+          'submit delete form' => NULL,
+          'generate key value' => NULL,
+          'validate key value' => NULL,
+          'module' => $module,
+        );
+        $key_types[$module_key_type_name] = $key_type_info;
+      }
+    }
+    backdrop_alter('key_type_info', $key_types);
+    backdrop_sort($key_types);
+  }
+
+  if (!isset($plugin_name)) {
+    return $key_types;
+  }
+  elseif (isset($key_types[$plugin_name])) {
+    return $key_types[$plugin_name];
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Gets information about a specific key input plugin.
+ *
+ * @param string|null $plugin_name
+ *   The id of the plugin to get.
+ *
+ * @return array|false
+ *   Associative array of a key input or an array of all key inputs if plugin
+ *   name is NULL.
+ */
+function key_get_key_input_info($plugin_name = NULL) {
+  $key_inputs = &backdrop_static(__FUNCTION__);
+
+  if (!isset($key_inputs)) {
+    foreach (module_implements('key_input_info') as $module) {
+      $module_key_inputs = module_invoke($module, 'key_input_info');
+      foreach ($module_key_inputs as $module_key_input_name => $key_input_info) {
+        // Provide defaults.
+        $key_input_info += array(
+          'name' => $module_key_input_name,
+          'label' => '',
+          'description' => '',
+          'default configuration' => NULL,
+          'build configuration form' => NULL,
+          'validate configuration form' => NULL,
+          'submit configuration form' => NULL,
+          'build delete form' => NULL,
+          'validate delete form' => NULL,
+          'submit delete form' => NULL,
+          'process submitted key value' => NULL,
+          'process existing key value' => NULL,
+          'module' => $module,
+        );
+        $key_inputs[$module_key_input_name] = $key_input_info;
+      }
+    }
+    backdrop_alter('key_input_info', $key_inputs);
+    backdrop_sort($key_inputs);
+  }
+
+  if (!isset($plugin_name)) {
+    return $key_inputs;
+  }
+  elseif (isset($key_inputs[$plugin_name])) {
+    return $key_inputs[$plugin_name];
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Gets information about a specific key provider plugin.
+ *
+ * @param string|null $plugin_name
+ *   The id of the plugin to get.
+ *
+ * @return array|false
+ *   Associative array of a key provider or an array of all key providers if
+ *   plugin name is NULL.
+ */
+function key_get_key_provider_info($plugin_name = NULL) {
+  $key_providers = &backdrop_static(__FUNCTION__);
+
+  if (!isset($key_providers)) {
+    foreach (module_implements('key_provider_info') as $module) {
+      $module_key_providers = module_invoke($module, 'key_provider_info');
+      foreach ($module_key_providers as $module_key_provider_name => $key_provider_info) {
+        // Provide defaults.
+        $key_provider_info += array(
+          'name' => $module_key_provider_name,
+          'label' => '',
+          'description' => '',
+          'storage method' => '',
+          'key value' => array(
+            'accepted' => FALSE,
+            'required' => FALSE,
+            'editable' => FALSE,
+          ),
+          'default configuration' => NULL,
+          'build configuration form' => NULL,
+          'validate configuration form' => NULL,
+          'submit configuration form' => NULL,
+          'build delete form' => NULL,
+          'validate delete form' => NULL,
+          'submit delete form' => NULL,
+          'get key value' => NULL,
+          'set key value' => NULL,
+          'delete key value' => NULL,
+          'obscure key value' => '_key_default_obscure_key_value',
+          'dependency callback' => NULL,
+          'dependency errors' => NULL,
+          'key value form' => NULL,
+          'key value obscure' => NULL,
+          'allow base64 encoding' => TRUE,
+          'module' => $module,
+        );
+
+        // Calculate dependencies and attach any errors.
+        if ($key_provider_info['dependency callback'] && $dep_function = key_get_function($key_provider_info, 'dependency callback')) {
+          $key_provider_info['dependency errors'] = call_user_func($dep_function);
+        }
+
+        $key_providers[$module_key_provider_name] = $key_provider_info;
+      }
+    }
+    backdrop_alter('key_provider_info', $key_providers);
+    backdrop_sort($key_providers);
+  }
+
+  if (!isset($plugin_name)) {
+    return $key_providers;
+  }
+  elseif (isset($key_providers[$plugin_name])) {
+    return $key_providers[$plugin_name];
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Get function
+ *
+ * @param array $plugin_definition
+ *   The loaded plugin definition
+ * @param string $function_name
+ *
+ * @return string|null
+ *   The actual name of the function to call, or NULL if the function
+ *   does not exist.
+ */
+function key_get_function(array $plugin_definition, $function_name) {
+  if (!empty($plugin_definition['file'])) {
+    require_once $plugin_definition['file'];
+  }
+
+  if (!isset($plugin_definition[$function_name])) {
+    return NULL;
+  }
+  $function = $plugin_definition[$function_name];
+
+  if (function_exists($function)) {
+    return $function;
+  }
+
+  return NULL;
 }

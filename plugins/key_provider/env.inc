@@ -5,20 +5,6 @@
  * Plugin definition for the Environment key provider.
  */
 
-$plugin = array(
-  'label' => t('Environment'),
-  'description' => t('The Environment key provider allows a key to be stored in an environment variable.'),
-  'storage method' => 'env',
-  'key value' => array(
-    'accepted' => FALSE,
-    'required' => FALSE,
-  ),
-  'default configuration' => 'key_provider_env_default_configuration',
-  'build configuration form' => 'key_provider_env_build_configuration_form',
-  'validate configuration form' => 'key_provider_env_validate_configuration_form',
-  'get key value' => 'key_provider_env_get_key_value',
-);
-
 /**
  * The default plugin configuration.
  *
