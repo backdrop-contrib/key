@@ -35,7 +35,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
    */
   public function testConfigKeyProvider() {
     // Create a random label.
-    $original_label = BackdropWebTestCase::randomName(8);
+    $original_label = (string) BackdropWebTestCase::randomName(8);
     $original_id = strtolower($original_label);
 
     // Create a random key value.
@@ -138,7 +138,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
    */
   public function testFileKeyProvider() {
     // Create a random label.
-    $original_label = BackdropWebTestCase::randomName(8);
+    $original_label = (string) BackdropWebTestCase::randomName(8);
     $original_id = strtolower($original_label);
 
     // Define a file location for the test key.
@@ -263,7 +263,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
    */
   public function testEnvKeyProvider() {
     // Create a random label.
-    $original_label = BackdropWebTestCase::randomName(8);
+    $original_label = (string) BackdropWebTestCase::randomName(8);
     $original_id = strtolower($original_label);
     $env_variable = strtoupper($original_id);
 
@@ -319,6 +319,66 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     // Confirm that the key no longer appears on the listing page.
     $this->backdropGet(KEY_MENU_PATH);
     $this->assertNoText($original_label, 'The environment variable key no longer appears on the key listing page.');
+  }
+
+  /**
+   * Test the State key provider.
+   */
+  public function testStateKeyProvider() {
+    // Create a random label.
+    $original_label = (string) BackdropWebTestCase::randomName(8);
+    $original_id = strtolower($original_label);
+    $state_key = strtoupper($original_id);
+
+    // Assign environment variable for the current request.
+    state_set($state_key, '123');
+
+    // Define a configuration.
+    $original_config = array(
+      'id' => $original_id,
+      'label' => $original_label,
+      'description' => 'A test key.',
+      'key_type' => 'authentication',
+      'key_type_settings' => array(),
+      'key_provider' => 'state',
+      'key_provider_settings' => array(
+        'state_key' => $state_key,
+      ),
+      'key_input' => 'none',
+      'key_input_settings' => array(),
+    );
+
+    // Creating the key directly.
+    $config = config('key.key.' . $original_config['id']);
+    $config->setData($original_config);
+    $config->save();
+
+    // Confirm that the key appears on the listing page.
+    $this->backdropGet(KEY_MENU_PATH);
+    $this->assertText($original_label, 'The environment variable key appears on the key listing page.');
+
+    // Confirm that the key was added successfully.
+    $config = key_get_key($original_id);
+    $this->assertEqual($config, $original_config, 'The state key was added successfully.');
+
+    // Confirm that the key value can be retrieved successfully.
+    $key_value = key_get_key_value($original_id);
+    $this->assertEqual($key_value, state_get($state_key), 'The state key value was retrieved successfully.');
+
+    // Delete the key.
+    $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");
+    $this->backdropPost(NULL, NULL, t('Delete'));
+
+    // Confirm that the confirmation text appears.
+    $this->assertText(t('The key @label has been deleted.', array('@label' => $original_label)), 'Confirmation text appears after deleting the state key.');
+
+    // Confirm that the key was deleted.
+    $config = key_get_key($original_id);
+    $this->assertFalse($config, 'The state key was deleted successfully.');
+
+    // Confirm that the key no longer appears on the listing page.
+    $this->backdropGet(KEY_MENU_PATH);
+    $this->assertNoText($original_label, 'The state key no longer appears on the key listing page.');
   }
 
 }
