@@ -44,7 +44,7 @@ function key_provider_settings_validate_configuration_form($form, &$form_state) 
   $settings_variable = $form_state['values']['settings_variable'];
   $settings_value = settings_get($settings_variable);
   if (!$settings_value) {
-    form_set_error('settings_variable', t('The settings variable does not exist or it is empty.'));
+    form_set_error('settings_variable', t('The settings variable does not exist or it is empty. Make sure the variable is set in the <code>settings.php</code> file, in this format: <code>$settings[\'' . $settings_variable . '\'] = \'\';</code>.'));
     return;
   }
 }
