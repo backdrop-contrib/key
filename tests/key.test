@@ -154,7 +154,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'key_provider' => 'file',
       'key_provider_settings' => array(
         'file_location' => $original_file_location,
-        'strip_line_breaks' => 0,
+        'strip_line_breaks' => 1,
         'base64_encoded' => 0,
       ),
       'key_input' => 'none',
@@ -203,6 +203,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     $altered_config = $config;
     $altered_config['key_provider_settings'] = array(
       'file_location' => $new_file_location,
+      'strip_line_breaks' => 1,
       'base64_encoded' => 1,
     );
 
@@ -279,34 +280,18 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'key_provider' => 'env',
       'key_provider_settings' => array(
         'env_variable' => $env_variable,
+        'strip_line_breaks' => 0,
         'base64_encoded' => 0,
       ),
       'key_input' => 'none',
       'key_input_settings' => array(),
     );
 
-    // Set the data to save.
-    $data = $original_config;
-    unset($data['key_type_settings']);
-    unset($data['key_provider_settings']);
-    unset($data['key_input_settings']);
-    unset($data['key_input']);
-    foreach ($original_config['key_type_settings'] as $index => $value) {
-      $data["key_type_settings[$index]"] = $value;
-    }
-    foreach ($original_config['key_provider_settings'] as $index => $value) {
-      $data["key_provider_settings[$index]"] = $value;
-    }
-    unset($data['key_provider_settings[base64_encoded]']);
-
-    // Add the configuration.
-    $this->backdropGet(KEY_MENU_PATH . '/add');
-    $this->backdropPostAJAX(NULL, array('key_type' => $data['key_type']), 'key_type');
-    $this->backdropPostAJAX(NULL, array('key_provider' => $data['key_provider']), 'key_provider');
-    $this->backdropPost(NULL, $data, t('Save key'));
-
-    // Confirm that the confirmation text appears.
-    $this->assertText(t('The key @label has been added.', array('@label' => $original_label)), 'Confirmation text appears after adding the environment variable key.');
+    // Creating the key directly because there's no easy way to set an $_ENV
+    // variable across requests without using a third-party library.
+    $config = config('key.key.' . $original_config['id']);
+    $config->setData($original_config);
+    $config->save();
 
     // Confirm that the key appears on the listing page.
     $this->backdropGet(KEY_MENU_PATH);

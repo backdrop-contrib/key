@@ -4,4 +4,3 @@ package = Security
 backdrop = 1.x
 type = module
 configure = admin/config/system/keys
-dependencies[] = plugin_manager

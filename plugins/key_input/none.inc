@@ -5,12 +5,6 @@
  * Plugin definition for the None key input.
  */
 
-$plugin = array(
-  'label' => t('None'),
-  'description' => t("A key input for providers that don't accept a value."),
-  'build configuration form' => 'key_input_none_build_configuration_form',
-);
-
 /**
  * Build the plugin configuration form.
  *

@@ -13,11 +13,6 @@ PayPal, MailChimp, Authorize.net, UPS, an SMTP mail server, or Amazon
 Web Services
 * A key used for encrypting data
 
-## Requirements
-
-Key requires the [Plugin Manager](https://www.backdropcms.org/project/plugin_manager)
-module.
-
 ## Installation
 
 Install Key using a standard method for installing a contributed Backdrop

@@ -8,7 +8,7 @@ function _drush_key_provider_list() {
 
   $storage_method = drush_get_option('storage-method');
 
-  $plugins = key_get_plugins('key_provider', TRUE, TRUE);
+  $plugins = key_get_plugins('key_provider', TRUE);
   foreach ($plugins as $id => $plugin) {
     if (!isset($storage_method) || $plugin['storage method'] == $storage_method) {
       $row = array();
