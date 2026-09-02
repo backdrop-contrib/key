@@ -82,23 +82,11 @@ function key_update_1003() {
 }
 
 /**
- * Implements hook_requirements().
+ * Check if Key Encrypt is missing.
  */
-function key_requirements($phase) {
-  $requirements = array();
-  $t = get_t();
-
-  if ($phase == 'runtime') {
-    $module = db_query("SELECT name FROM {system} WHERE filename LIKE '%key/modules/key_encrypt%' AND type = 'module' AND status = 1")->fetchField();
-    if ($module) {
-      $requirements['key_encrypt_version'] = array(
-        'title' => $t('Key Encrypt'),
-        'value' => $t('Key Encrypt module missing'),
-        'description' => $t('Key Encrypt module is required but not found. Update the <a href="@module">Encrypt module</a> (which now bundles Key Encrypt).', array('@module' => 'https://backdropcms.org/project/encrypt')),
-        'severity' => REQUIREMENT_ERROR,
-      );
-    }
+function key_update_1004() {
+  $module = db_query("SELECT name FROM {system} WHERE filename LIKE '%key/modules/key_encrypt%' AND type = 'module' AND status = 1")->fetchField();
+  if ($module) {
+    backdrop_set_message(t('<em>Key Encrypt</em> module is required but not found. Update the <a href="@module">Encrypt module</a> (which now bundles Key Encrypt).', array('@module' => 'https://backdropcms.org/project/encrypt')), 'error');
   }
-
-  return $requirements;
 }
