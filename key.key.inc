@@ -153,14 +153,39 @@ function key_key_provider_info() {
     'description' => t('The File key provider allows a key to be stored in a file, preferably outside of the web root.'),
     'storage method' => 'file',
     'key value' => array(
-      'accepted' => FALSE,
+      'accepted' => TRUE,
       'required' => FALSE,
     ),
     'default configuration' => 'key_provider_file_default_configuration',
     'build configuration form' => 'key_provider_file_build_configuration_form',
     'validate configuration form' => 'key_provider_file_validate_configuration_form',
     'get key value' => 'key_provider_file_get_key_value',
+    'set key value' => 'key_provider_file_set_key_value',
+    'delete key value' => 'key_provider_file_delete_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/file.inc',
+  );
+
+  $info['private'] = array(
+    'label' => t('Private file'),
+    'description' => t(
+      'This key provider stores the key in the <a href="@filesystem_settings">Private file system path</a> (e.g., %str).',
+      array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
+        '%str' => 'private://keys/foobar.key',
+      )
+    ),
+    'storage method' => 'file',
+    'key value' => array(
+      'accepted' => TRUE,
+      'required' => TRUE,
+    ),
+    'default configuration' => 'key_provider_private_default_configuration',
+    'build configuration form' => 'key_provider_private_build_configuration_form',
+    'validate configuration form' => 'key_provider_private_validate_configuration_form',
+    'get key value' => 'key_provider_private_get_key_value',
+    'set key value' => 'key_provider_private_set_key_value',
+    'delete key value' => 'key_provider_private_delete_key_value',
+    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/private.inc',
   );
 
   return $info;

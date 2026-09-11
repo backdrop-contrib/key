@@ -5,28 +5,6 @@
  * Plugin definition for the Private key provider.
  */
 
-$plugin = array(
-  'label' => t('Private file'),
-  'description' => t(
-    'This key provider stores the key in the <a href="@filesystem_settings">Private file system path</a> (e.g., %str).',
-    array(
-      '@filesystem_settings' => url('admin/config/media/file-system'),
-      '%str' => 'private://keys/foobar.key',
-    )
-  ),
-  'storage method' => 'file',
-  'key value' => array(
-    'accepted' => TRUE,
-    'required' => TRUE,
-  ),
-  'default configuration' => 'key_provider_private_default_configuration',
-  'build configuration form' => 'key_provider_private_build_configuration_form',
-  'validate configuration form' => 'key_provider_private_validate_configuration_form',
-  'get key value' => 'key_provider_private_get_key_value',
-  'set key value' => 'key_provider_private_set_key_value',
-  'delete key value' => 'key_provider_private_delete_key_value',
-);
-
 /**
  * The default plugin configuration.
  *
