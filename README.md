@@ -35,7 +35,7 @@ default.
 key type has a field for selecting a key size, which is used to
 validate the size of the key value.
 
-Key types are Plugin Manager plugins, so new types can be defined easily.
+Key types are plugins, so new types can be defined easily.
 
 ### Key provider
 

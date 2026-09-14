@@ -188,7 +188,7 @@ function key_config_load($id) {
  *   The processed element.
  */
 function _key_process_key_select($element) {
-  $options = key_get_key_names_as_options($element['#key_filters'], TRUE);
+  $options = key_get_key_names_as_options($element['#key_filters']);
   $element['#options'] = $options;
 
   // Prefix the default description with a information about keys.
@@ -735,7 +735,6 @@ function _key_default_obscure_key_value($key_value, $options = array()) {
 
     case 'encryption':
       $options['visible_right'] = 0;
-      $options['fixed_length'] = 30;
       $obscured_value = _key_obscure_value($key_value, $options);
       break;
 
@@ -776,8 +775,8 @@ function _key_obscure_value($value, $options = array()) {
   if ($options['fixed_length']) {
     $obscured_chars = str_repeat($options['replacement_character'], $options['fixed_length'] - $options['visible_right']);
   }
-  elseif (backdrop_strlen($value) - $options['visible_right'] > 0) {
-    $obscured_chars = str_repeat($options['replacement_character'], backdrop_strlen($value) - $options['visible_right']);
+  elseif (strlen($value) - $options['visible_right'] > 0) {
+    $obscured_chars = str_repeat($options['replacement_character'], strlen($value) - $options['visible_right']);
   }
 
   return $obscured_chars . $visible_right_chars;

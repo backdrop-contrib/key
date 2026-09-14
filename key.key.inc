@@ -16,7 +16,7 @@ function key_key_type_info() {
     )),
     'group' => 'encryption',
     'key value' => array(
-      'plugin' => 'text_field',
+      'plugin' => 'generate',
     ),
     'default configuration' => 'key_type_encryption_default_configuration',
     'build configuration form' => 'key_type_encryption_build_configuration_form',
@@ -150,7 +150,12 @@ function key_key_provider_info() {
 
   $info['file'] = array(
     'label' => t('File'),
-    'description' => t('The File key provider allows a key to be stored in a file, preferably outside of the web root.'),
+    'description' => t(
+      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set. Can use an existing key file as a fallback.',
+      array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
+      ),
+    ),
     'storage method' => 'file',
     'key value' => array(
       'accepted' => TRUE,
