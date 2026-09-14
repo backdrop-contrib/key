@@ -28,6 +28,8 @@ function key_provider_prior_file_default_configuration() {
 function key_provider_prior_file_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_file_default_configuration();
+  $key_type = key_get_key_type_info($config['key_type']);
+  $is_new = empty($config['id']);
 
   $form['file_location'] = array(
     '#type' => 'textfield',
@@ -41,6 +43,7 @@ function key_provider_prior_file_build_configuration_form($form, &$form_state) {
       )
     ),
     '#default_value' => $plugin_config['file_location'],
+    '#disabled' => !$is_new && $key_type['group'] == 'encryption',
   );
 
   $form['strip_line_breaks'] = array(
@@ -51,14 +54,14 @@ function key_provider_prior_file_build_configuration_form($form, &$form_state) {
   );
 
   // If this is for an encryption key.
-  $key_type = key_get_key_type_info($config['key_type']);
   if ($key_type['group'] == 'encryption') {
     // Add an option to indicate that the value is Base64-encoded.
     $form['base64_encoded'] = array(
       '#type' => 'checkbox',
       '#title' => t('Base64-encoded'),
-      '#description' => t('Checking this will store the key with Base64 encoding.'),
+      '#description' => t('Checking this will store the key with Base64 encoding. Can only be set on new keys.'),
       '#default_value' => $plugin_config['base64_encoded'],
+      '#disabled' => !$is_new,
     );
   }
 

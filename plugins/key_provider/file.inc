@@ -28,6 +28,7 @@ function key_provider_file_default_configuration() {
 function key_provider_file_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_file_default_configuration();
+  $is_new = empty($config['id']);
 
   $form['file_location'] = array(
     '#type' => 'hidden',
@@ -48,8 +49,9 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
     $form['base64_encoded'] = array(
       '#type' => 'checkbox',
       '#title' => t('Base64-encoded'),
-      '#description' => t('Checking this will store the key with Base64 encoding.'),
+      '#description' => t('Checking this will store the key with Base64 encoding. Can only be set on new keys.'),
       '#default_value' => $plugin_config['base64_encoded'],
+      '#disabled' => !$is_new,
     );
   }
 
