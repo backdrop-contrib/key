@@ -14,6 +14,7 @@
 function key_provider_state_default_configuration() {
   return array(
     'state_key' => '',
+    'base64_encoded' => FALSE,
   );
 }
 
@@ -24,7 +25,9 @@ function key_provider_state_default_configuration() {
  *   The plugin configuration form.
  */
 function key_provider_state_build_configuration_form($form, &$form_state) {
+  $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_state_default_configuration();
+  $key_type = key_get_key_type_info($config['key_type']);
 
   $form['state_key'] = [
     '#type' => 'textfield',
@@ -33,6 +36,17 @@ function key_provider_state_build_configuration_form($form, &$form_state) {
     '#required' => TRUE,
     '#default_value' => $plugin_config['state_key'],
   ];
+
+  // If this is for an encryption key.
+  if ($key_type['group'] == 'encryption') {
+    // Add an option to indicate that the value is Base64-encoded.
+    $form['base64_encoded'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Base64-encoded'),
+      '#description' => t('Check this if the key in the variable is Base64-encoded. <em>Note: Naturally Base64-encoded values, such as RSA keys, do not need to be marked as Base64-encoded unless they have been additionally encoded for another reason.</em>'),
+      '#default_value' => $plugin_config['base64_encoded'],
+    );
+  }
 
   return $form;
 }
@@ -57,5 +71,13 @@ function key_provider_state_get_key_value($config) {
     return NULL;
   }
   $state_variable = $config['key_provider_settings']['state_key'];
-  return state_get($state_variable);
+
+  $key_value = state_get($state_variable);
+
+  // Base64-decode if necessary.
+  if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded']) {
+    $key_value = base64_decode($key_value);
+  }
+
+  return $key_value;
 }

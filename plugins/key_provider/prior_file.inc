@@ -59,9 +59,8 @@ function key_provider_prior_file_build_configuration_form($form, &$form_state) {
     $form['base64_encoded'] = array(
       '#type' => 'checkbox',
       '#title' => t('Base64-encoded'),
-      '#description' => t('Checking this will store the key with Base64 encoding. Can only be set on new keys.'),
+      '#description' => t('Check this if the key in the variable is Base64-encoded. <em>Note: Naturally Base64-encoded values, such as RSA keys, do not need to be marked as Base64-encoded unless they have been additionally encoded for another reason.</em>'),
       '#default_value' => $plugin_config['base64_encoded'],
-      '#disabled' => !$is_new,
     );
   }
 

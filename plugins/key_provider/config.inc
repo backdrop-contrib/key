@@ -13,7 +13,7 @@
  */
 function key_provider_config_default_configuration() {
   return array(
-    'base64_encoded' => FALSE,
+    'base64_encoded' => TRUE,
   );
 }
 
@@ -25,6 +25,7 @@ function key_provider_config_default_configuration() {
  */
 function key_provider_config_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
+  $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_config_default_configuration();
   $key_type = key_get_key_type_info($config['key_type']);
 
   // If this is for an encryption key.
@@ -34,7 +35,7 @@ function key_provider_config_build_configuration_form($form, &$form_state) {
       '#type' => 'checkbox',
       '#title' => t('Base64-encoded'),
       '#description' => t('Configuration requires Base64 encoding to ensure compatibility.'),
-      '#default_value' => TRUE,
+      '#default_value' => $plugin_config['base64_encoded'],
       '#disabled' => TRUE,
     );
   }
