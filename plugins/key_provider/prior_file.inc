@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Plugin definition for the File key provider.
+ * Plugin definition for the Prior File key provider.
  */
 
 /**
@@ -11,7 +11,7 @@
  * @return array
  *   The default plugin configuration.
  */
-function key_provider_file_default_configuration() {
+function key_provider_prior_file_default_configuration() {
   return array(
     'file_location' => '',
     'strip_line_breaks' => FALSE,
@@ -25,13 +25,22 @@ function key_provider_file_default_configuration() {
  * @return array
  *   The plugin configuration form.
  */
-function key_provider_file_build_configuration_form($form, &$form_state) {
+function key_provider_prior_file_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_file_default_configuration();
 
   $form['file_location'] = array(
-    '#type' => 'hidden',
-    '#value' => $plugin_config['file_location'],
+    '#type' => 'textfield',
+    '#title' => t('Pre-existing file location'),
+    '#description' => t('The location of the text file. The recommended location is relative to the <a href="@filesystem_settings">Private file system path</a> (e.g., %str), if it has been set. Other options are to set an absolute path (e.g., %abs), or relative to the Backdrop directory (e.g., %rel). You will need to manually place this text file on your server with the key in it.',
+      array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
+        '%abs' => '/etc/keys/foobar.key',
+        '%rel' => '../keys/foobar.key',
+        '%str' => 'private://keys/foobar.key',
+      )
+    ),
+    '#default_value' => $plugin_config['file_location'],
   );
 
   $form['strip_line_breaks'] = array(
@@ -59,41 +68,9 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
 /**
  * Validate callback for the configuration form.
  */
-function key_provider_file_validate_configuration_form($form, &$form_state) {
+function key_provider_prior_file_validate_configuration_form($form, &$form_state) {
   $key_provider_settings = $form_state['values'];
   $filename = $key_provider_settings['file_location'];
-
-  $id = $form_state['storage']['key_config']['id'] ?? '';
-  $config = config('key.key.' . $id);
-
-  // Check that private file system is set.
-  if (!config_get('system.core', 'file_private_path')) {
-    form_error($form, t(
-      'The <a href="@filesystem_settings">Private file system path</a> (e.g., %str) needs to be set in order for the private key provider to save this key.',
-      array(
-        '@filesystem_settings' => url('admin/config/media/file-system'),
-        '%str' => 'private://',
-      )
-    ));
-    return;
-  }
-
-  if ($config->isNew()) {
-    $filename = _key_create_private_key_file();
-
-    if (!$filename) {
-      form_error($form, t(
-        'Unable to create the private key file. Ensure that the <a href="@filesystem_settings">Private file system path</a> (e.g., %str) has been set.',
-        array(
-          '@filesystem_settings' => url('admin/config/media/file-system'),
-          '%str' => 'private://',
-        )
-      ));
-      return;
-    }
-
-    $form_state['values']['file_location'] = $filename;
-  }
 
   if (!$filename) {
     form_set_error('file_location', t('The file location is required.'));
@@ -116,7 +93,7 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
 /**
  * Callback function to return a key from a file.
  */
-function key_provider_file_get_key_value($config) {
+function key_provider_prior_file_get_key_value($config) {
   if (empty($config['key_provider_settings']['file_location'])) {
     return NULL;
   }
@@ -142,40 +119,6 @@ function key_provider_file_get_key_value($config) {
 }
 
 /**
- * Sets the value of a key.
- *
- * @param array $config
- *   The key configuration for which to set the value.
- * @param array $form_state
- *   The form state.
- * @param string $key_value
- *   The key value.
- *
- * @return bool
- *   TRUE if successful, FALSE if unsuccessful.
- */
-function key_provider_file_set_key_value($config, &$form_state, $key_value) {
-  if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded'] == TRUE) {
-    $key_value = base64_encode($key_value);
-  }
-
-  // Ensure value isn't saved to the config.
-  unset($form_state['values']['key_value']);
-
-  if (!$key_value) {
-    return TRUE;
-  }
-
-  $filename = $form_state['values']['file_location'];
-  $status = FALSE;
-  if ($filename) {
-    $status = (bool) file_put_contents($filename, $key_value);
-  }
-
-  return $status;
-}
-
-/**
  * Deletes the value of a key.
  *
  * @param array $config
@@ -184,7 +127,8 @@ function key_provider_file_set_key_value($config, &$form_state, $key_value) {
  * @return bool
  *   TRUE if successful, FALSE if unsuccessful.
  */
-function key_provider_file_delete_key_value($config) {
-  $filename = $config['key_provider_settings']['file_location'] ?? '';
-  return $filename ? backdrop_unlink($filename) : FALSE;
+function key_provider_prior_file_delete_key_value($config) {
+  // Do not delete pre-existing files.
+  backdrop_set_message(t('The deleted key referenced a pre-existing key file. Pre-existing files are not deleted.'), 'warning');
+  return TRUE;
 }

@@ -151,7 +151,7 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'description' => 'A test key.',
       'key_type' => 'encryption',
       'key_type_settings' => array('key_size' => 256),
-      'key_provider' => 'file',
+      'key_provider' => 'prior_file',
       'key_provider_settings' => array(
         'file_location' => $original_file_location,
         'strip_line_breaks' => 1,
@@ -194,7 +194,9 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
 
     // Confirm that the key value can be retrieved successfully.
     $key_value = key_get_key_value($original_id);
-    $this->assertEqual($key_value, file_get_contents($original_file_location), 'The file/encryption key value was retrieved successfully.');
+    $retrieved_key_value = file_get_contents($original_file_location) ?: '';
+    $retrieved_key_value = rtrim($retrieved_key_value, "\n\r");
+    $this->assertEqual($key_value, $retrieved_key_value, 'The file/encryption key value was retrieved successfully.');
 
     // Define a new file location.
     $new_file_location = __DIR__ . '/keys/256-bit_base64-encoded.key';
@@ -240,7 +242,9 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
 
     // Confirm that the key value can be retrieved successfully.
     $key_value = key_get_key_value($original_id);
-    $this->assertEqual($key_value, base64_decode(file_get_contents($new_file_location)), 'The file/encryption key value was retrieved successfully.');
+    $retrieved_key_value = file_get_contents($new_file_location) ?: '';
+    $retrieved_key_value = base64_decode((rtrim($retrieved_key_value, "\n\r")));
+    $this->assertEqual($key_value, $retrieved_key_value, 'The file/encryption key value was retrieved successfully.');
 
     // Delete the key.
     $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");

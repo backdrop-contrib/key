@@ -151,7 +151,7 @@ function key_key_provider_info() {
   $info['file'] = array(
     'label' => t('File'),
     'description' => t(
-      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set. Can use an existing key file as a fallback in which case a new key value will not be created.',
+      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set.',
       array(
         '@filesystem_settings' => url('admin/config/media/file-system'),
       ),
@@ -168,6 +168,23 @@ function key_key_provider_info() {
     'set key value' => 'key_provider_file_set_key_value',
     'delete key value' => 'key_provider_file_delete_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/file.inc',
+  );
+
+  $info['prior_file'] = array(
+    'label' => t('Prior file'),
+    'description' => t(
+      'Use a pre-existing key file that already contains the key value.'),
+    'storage method' => 'file',
+    'key value' => array(
+      'accepted' => FALSE,
+      'required' => FALSE,
+    ),
+    'default configuration' => 'key_provider_prior_file_default_configuration',
+    'build configuration form' => 'key_provider_prior_file_build_configuration_form',
+    'validate configuration form' => 'key_provider_prior_file_validate_configuration_form',
+    'get key value' => 'key_provider_prior_file_get_key_value',
+    'delete key value' => 'key_provider_prior_file_delete_key_value',
+    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/prior_file.inc',
   );
 
   return $info;
