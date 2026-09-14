@@ -11,7 +11,7 @@
 function key_key_type_info() {
   $info['encryption'] = array(
     'label' => t('Encryption'),
-    'description' => t('Can be used for encrypting and decrypting data. This key type has a field for selecting a key size, which is used to validate the size of the key value. Either generate an encryption key online, create your own 32 character string, or read the <a href="@documentation">documentation</a> on how to generate with commandline tools. To ensure that it can be saved and sent without getting corrupted, base64 encode it. Search online for a site that can encode it in base64 formatting.', array(
+    'description' => t('Used for encrypting and decrypting data. By default, the encryption value will be generated automatically to match the required key size. In some cases, an existing key can be used, such as in the case of the File key provider. If using your own pre-existing file, read the <a href="@documentation">documentation</a>.', array(
       '@documentation' => 'https://backdropcms.org/project/key',
     )),
     'group' => 'encryption',
@@ -151,7 +151,7 @@ function key_key_provider_info() {
   $info['file'] = array(
     'label' => t('File'),
     'description' => t(
-      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set. Can use an existing key file as a fallback.',
+      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set. Can use an existing key file as a fallback in which case a new key value will not be created.',
       array(
         '@filesystem_settings' => url('admin/config/media/file-system'),
       ),
@@ -168,29 +168,6 @@ function key_key_provider_info() {
     'set key value' => 'key_provider_file_set_key_value',
     'delete key value' => 'key_provider_file_delete_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/file.inc',
-  );
-
-  $info['private'] = array(
-    'label' => t('Private file'),
-    'description' => t(
-      'This key provider stores the key in the <a href="@filesystem_settings">Private file system path</a> (e.g., %str).',
-      array(
-        '@filesystem_settings' => url('admin/config/media/file-system'),
-        '%str' => 'private://keys/foobar.key',
-      )
-    ),
-    'storage method' => 'file',
-    'key value' => array(
-      'accepted' => TRUE,
-      'required' => TRUE,
-    ),
-    'default configuration' => 'key_provider_private_default_configuration',
-    'build configuration form' => 'key_provider_private_build_configuration_form',
-    'validate configuration form' => 'key_provider_private_validate_configuration_form',
-    'get key value' => 'key_provider_private_get_key_value',
-    'set key value' => 'key_provider_private_set_key_value',
-    'delete key value' => 'key_provider_private_delete_key_value',
-    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/private.inc',
   );
 
   return $info;
