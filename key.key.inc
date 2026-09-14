@@ -11,12 +11,12 @@
 function key_key_type_info() {
   $info['encryption'] = array(
     'label' => t('Encryption'),
-    'description' => t('Can be used for encrypting and decrypting data. This key type has a field for selecting a key size, which is used to validate the size of the key value. Either generate an encryption key online, create your own 32 character string, or read the <a href="@documentation">documentation</a> on how to generate with commandline tools. To ensure that it can be saved and sent without getting corrupted, base64 encode it. Search online for a site that can encode it in base64 formatting.', array(
+    'description' => t('Used for encrypting and decrypting data. By default, the encryption value will be generated automatically to match the required key size. In some cases, an existing key can be used, such as in the case of the File key provider. If using your own pre-existing file, read the <a href="@documentation">documentation</a>.', array(
       '@documentation' => 'https://backdropcms.org/project/key',
     )),
     'group' => 'encryption',
     'key value' => array(
-      'plugin' => 'text_field',
+      'plugin' => 'generate',
     ),
     'default configuration' => 'key_type_encryption_default_configuration',
     'build configuration form' => 'key_type_encryption_build_configuration_form',
@@ -150,17 +150,41 @@ function key_key_provider_info() {
 
   $info['file'] = array(
     'label' => t('File'),
-    'description' => t('The File key provider allows a key to be stored in a file, preferably outside of the web root.'),
+    'description' => t(
+      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set.',
+      array(
+        '@filesystem_settings' => url('admin/config/media/file-system'),
+      ),
+    ),
     'storage method' => 'file',
     'key value' => array(
-      'accepted' => FALSE,
+      'accepted' => TRUE,
       'required' => FALSE,
     ),
     'default configuration' => 'key_provider_file_default_configuration',
     'build configuration form' => 'key_provider_file_build_configuration_form',
     'validate configuration form' => 'key_provider_file_validate_configuration_form',
     'get key value' => 'key_provider_file_get_key_value',
+    'set key value' => 'key_provider_file_set_key_value',
+    'delete key value' => 'key_provider_file_delete_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/file.inc',
+  );
+
+  $info['prior_file'] = array(
+    'label' => t('Prior file'),
+    'description' => t(
+      'Use a pre-existing key file that already contains the key value.'),
+    'storage method' => 'file',
+    'key value' => array(
+      'accepted' => FALSE,
+      'required' => FALSE,
+    ),
+    'default configuration' => 'key_provider_prior_file_default_configuration',
+    'build configuration form' => 'key_provider_prior_file_build_configuration_form',
+    'validate configuration form' => 'key_provider_prior_file_validate_configuration_form',
+    'get key value' => 'key_provider_prior_file_get_key_value',
+    'delete key value' => 'key_provider_prior_file_delete_key_value',
+    'file' => backdrop_get_path('module', 'key') . '/plugins/key_provider/prior_file.inc',
   );
 
   return $info;

@@ -188,7 +188,7 @@ function key_config_load($id) {
  *   The processed element.
  */
 function _key_process_key_select($element) {
-  $options = key_get_key_names_as_options($element['#key_filters'], TRUE);
+  $options = key_get_key_names_as_options($element['#key_filters']);
   $element['#options'] = $options;
 
   // Prefix the default description with a information about keys.
@@ -624,7 +624,7 @@ function _key_get_plugin_types() {
  */
 function _key_config_defaults() {
   $key_type_id = 'authentication';
-  $key_provider_id = 'config';
+  $key_provider_id = 'file';
 
   $key_type = key_get_key_type_info($key_type_id);
   $key_provider = key_get_key_provider_info($key_provider_id);
@@ -735,7 +735,6 @@ function _key_default_obscure_key_value($key_value, $options = array()) {
 
     case 'encryption':
       $options['visible_right'] = 0;
-      $options['fixed_length'] = 30;
       $obscured_value = _key_obscure_value($key_value, $options);
       break;
 
@@ -776,8 +775,8 @@ function _key_obscure_value($value, $options = array()) {
   if ($options['fixed_length']) {
     $obscured_chars = str_repeat($options['replacement_character'], $options['fixed_length'] - $options['visible_right']);
   }
-  elseif (backdrop_strlen($value) - $options['visible_right'] > 0) {
-    $obscured_chars = str_repeat($options['replacement_character'], backdrop_strlen($value) - $options['visible_right']);
+  elseif (strlen($value) - $options['visible_right'] > 0) {
+    $obscured_chars = str_repeat($options['replacement_character'], strlen($value) - $options['visible_right']);
   }
 
   return $obscured_chars . $visible_right_chars;
@@ -985,4 +984,44 @@ function key_get_function(array $plugin_definition, $function_name) {
   }
 
   return NULL;
+}
+
+/**
+ * Confirm that keys directory exists and is writable.
+ *
+ * Creates a key file in the private file system if it is possible.
+ *
+ * @return string|false
+ *   Filename or FALSE if unable to create it.
+ */
+function _key_create_private_key_file() {
+  $mode = 0700;
+  $private_path = config_get('system.core', 'file_private_path');
+  $directory = '';
+  if ($private_path) {
+    $directory = realpath($private_path . DIRECTORY_SEPARATOR . 'keys');
+    if (!$directory && @backdrop_mkdir($private_path . DIRECTORY_SEPARATOR . 'keys', $mode, TRUE)) {
+      $directory = realpath($private_path . DIRECTORY_SEPARATOR . 'keys');
+    }
+  }
+
+  if (is_dir($directory)) {
+    if (is_writable($directory) || backdrop_chmod($directory, $mode)) {
+      // Give the key a nigh-unguessable filename.
+      $destination = $directory . DIRECTORY_SEPARATOR . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
+
+      // If file already exists, then fail.
+      if (is_file($destination)) {
+        return FALSE;
+      }
+
+      // Ensure the file exists and is readable.
+      file_put_contents($destination, '');
+      if (is_readable($destination)) {
+        return $destination;
+      }
+    }
+  }
+
+  return FALSE;
 }

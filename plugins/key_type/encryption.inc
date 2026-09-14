@@ -43,7 +43,7 @@ function key_type_encryption_build_configuration_form($form, &$form_state) {
   $form['key_size'] = array(
     '#type' => 'select',
     '#title' => t('Key size'),
-    '#description' => t('The size of the key in bits, with 8 bits per byte. For example, a string like "12345678901234567890123456789012" has 32 characters/bytes or 256 bits.'),
+    '#description' => t('Used to validate the size of the key value. The size of the key in bits, with 8 bits per byte. For example, a string like "12345678901234567890123456789012" has 32 characters/bytes or 256 bits.'),
     '#options' => $key_size_options + array('other' => t('Other')),
     '#default_value' => $key_size,
     '#required' => TRUE,

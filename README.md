@@ -35,7 +35,7 @@ default.
 key type has a field for selecting a key size, which is used to
 validate the size of the key value.
 
-Key types are Plugin Manager plugins, so new types can be defined easily.
+Key types are plugins, so new types can be defined easily.
 
 ### Key provider
 
@@ -55,11 +55,13 @@ be stored in configuration. Keys using the Configuration provider are not obscur
 when editing, making it even more important that this provider not be
 used in a production environment.
 
-**File:** Stores the key in a file, which can be anywhere in the file
-system, as long as it's readable by the user that runs the web server.
-You will be required to manually create this file with the key and place
-it on your server. Storing the key in a file outside of the web root is
-generally more secure than storing it in the database.
+**File:** Stores the key in a file, which will be created in the Private file
+system path. This is the most secure option outside of using a cloud service.
+
+**Prior File** Reference an existing key file, so as long as it's readable by
+the user that runs the web server. You will be required to manually create this
+file with the key and place it on your server. Storing the key in a file outside
+of the web root is generally more secure than storing it in the database.
 
 **Settings:** The settings key provider allows a key to be retrieved from the
 Backdrop [settings file](https://docs.backdropcms.org/api/backdrop/settings.php/1)
