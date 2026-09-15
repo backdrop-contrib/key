@@ -991,24 +991,20 @@ function key_get_function(array $plugin_definition, $function_name) {
  *
  * Creates a key file in the private file system if it is possible.
  *
+ * @param string $prefix
+ *   Prefix for the filename
+ *
  * @return string|false
- *   Filename or FALSE if unable to create it.
+ *   Filename destination or FALSE if unable to create it.
  */
-function _key_create_private_key_file() {
-  $mode = 0700;
+function _key_create_private_key_file($prefix = '') {
   $private_path = config_get('system.core', 'file_private_path');
   $directory = '';
   if ($private_path) {
-    $directory = realpath($private_path . DIRECTORY_SEPARATOR . 'keys');
-    if (!$directory && @backdrop_mkdir($private_path . DIRECTORY_SEPARATOR . 'keys', $mode, TRUE)) {
-      $directory = realpath($private_path . DIRECTORY_SEPARATOR . 'keys');
-    }
-  }
-
-  if (is_dir($directory)) {
-    if (is_writable($directory) || backdrop_chmod($directory, $mode)) {
-      // Give the key a nigh-unguessable filename.
-      $destination = $directory . DIRECTORY_SEPARATOR . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
+    $directory = 'private://keys';
+    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+      $filename = $prefix . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
+      $destination = "{$directory}/$filename";
 
       // If file already exists, then fail.
       if (is_file($destination)) {
@@ -1018,6 +1014,7 @@ function _key_create_private_key_file() {
       // Ensure the file exists and is readable.
       file_put_contents($destination, '');
       if (is_readable($destination)) {
+        // Return the stream uri.
         return $destination;
       }
     }

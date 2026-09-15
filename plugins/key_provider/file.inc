@@ -84,7 +84,7 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
   }
 
   if ($config->isNew()) {
-    $filename = _key_create_private_key_file();
+    $filename = _key_create_private_key_file("{$id}_");
 
     if (!$filename) {
       form_error($form, t(
