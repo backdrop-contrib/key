@@ -34,7 +34,7 @@ default.
 * **Encryption:** Can be used for encrypting and decrypting data. This
 key type has a field for selecting a key size, which is used to
 validate the size of the key value. By default the encryption key value is
-generated automaticlaly.
+generated automatically. If you wish to use a pre-existing key value, see the section on "Generating a Random Encryption Key".
 
 Key types are plugins, so new types can be defined easily.
 
@@ -60,6 +60,7 @@ used in a production environment.
 system path. This is the most secure option outside of using a cloud service. If
 needing to reference a pre-existing file, use the commandline `bee key-save`
 instead, so as long as it's readable by the user that runs the web server.
+For more info, use the command `bee key-save --help`.
 
 **Settings:** The settings key provider allows a key to be retrieved from the
 Backdrop [settings file](https://docs.backdropcms.org/api/backdrop/settings.php/1)
@@ -192,22 +193,32 @@ key or the value of a specific key:
 
 `key_get_key_value($key_id)`
 
-### Generating a Random Encryption Key
+### Generating a custom Encryption Key
 
 The default encryption key size is 256 bits, with 8 bits per byte. For example,
 a string like `12345678901234567890123456789012` has 32 characters/bytes or 256
 bits. There is also an option for specifying if the key was Base64-encoded.
 
 By default, encryption keys will be generated automatically based on the selected
-key size. Though if you wish to manually generate a key, one way is to
-enter the following command in a Unix environment (changing the path and file
-name to suit your needs):
+key size. Though if you wish to manually generate a key, one way is to use an
+online service to generate one that matches the number of bits, and optionally,
+also base64 encode it.
+
+Another way is to create a key file by entering the commands in a Unix
+environment. To output to the screen:
+
+`cat /dev/urandom | head -c 32`
+
+This will display a random 256-bit key. For a 128-bit key, change the 32 to 16
+in the command. For simplification, consider the "bs" (byte) to equal a character.
+
+Or base64 encode it:
+
+`cat /dev/urandom | head -c 32 | base64 -i`
+
+Or create binary file (changing the path and file name to suit your needs):
 
 `dd if=/dev/urandom bs=32 count=1 > /path/to/secret.key`
-
-This will create a binary file with a random 256-bit key. For a 128-bit key,
-change the 32 to 16 in the command. For simplification, consider the "bs" (byte)
-to equal a character.
 
 To use base64 encoding when generating the key, use:
 
