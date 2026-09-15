@@ -16,8 +16,6 @@ function _bee_key_save($arguments, $options) {
   $id = $arguments['id'] ?? NULL;
   $values['id'] = $id;
 
-  $key_value = $arguments['key_value'] ?? NULL;
-
   // Look for a key with the specified ID. If one exists, and the overwrite
   // option was not specified, set an error and abort.
   $existing_key = key_get_key($id);
@@ -53,6 +51,10 @@ function _bee_key_save($arguments, $options) {
 
   // Set any values defined as options.
   foreach (array_keys(key_bee_save_options()) as $option) {
+    if ($option == 'key-value') {
+      $key_value = $options[$option] ?? NULL;
+      unset($options[$option]);
+    }
     $value = $options[$option] ?? NULL;
     if (isset($value) && in_array($option, array_keys($key_config_fields))) {
       if (in_array($option, array(
