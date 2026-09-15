@@ -41,7 +41,7 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
   $form['strip_line_breaks'] = array(
     '#type' => 'checkbox',
     '#title' => t('Strip trailing line breaks'),
-    '#description' => t('Check this to remove any trailing line breaks from the file. Leave unchecked if there is a chance that a line break could be a valid character in the key.'),
+    '#description' => t('Check this to remove any trailing line breaks from the file. Leave unchecked if there is a chance that a line break could be a valid character in the key. Only affects retrieving the value and not when saving.'),
     '#default_value' => $plugin_config['strip_line_breaks'],
   );
 

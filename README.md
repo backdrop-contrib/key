@@ -99,6 +99,11 @@ The provider plugins support storing and retrieving the key with Base64 encoding
 Base64 is used here to encode arbitrary bytes which are known to be safe to send
 without getting corrupted.
 
+#### Strip line breaks
+
+Some of the provider plugins support removing any trailing line breaks from the
+key value. This option only affects retrieving the value and not when saving.
+
 ## About key input
 
 When adding or editing a key, if the selected key provider accepts a
