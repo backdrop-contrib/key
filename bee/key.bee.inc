@@ -9,14 +9,13 @@ function key_bee_command() {
     'callback' => 'key_save_bee_command',
     'group' => 'key',
     'examples' => array(
-      'bee key-save secret_password \'pA$$w0rd\' --label="Secret password" --key-type=authentication --key-provider=config --key-input=text_field' => 'Define a key for a password to use for authentication using the Configuration key provider.',
-      'bee key-save encryption_key --label="Encryption key" --key-type=encryption --key-type-settings=\'{"key_size":256}\' --key-provider=file --key-provider-settings=\'{"file_location":"private://keys/encryption.key", "base64_encoded":true}\' --key-input=none' => 'Define a key to use for encryption using the File key provider.',
+      'bee key-save secret_password --key-value="pA$$w0rd" --label="Secret password" --key-type=authentication --key-provider=config --key-input=textarea_field' => bt('Define a key for a password to use for authentication using the Configuration key provider.'),
+      'bee key-save secret_password2 --key-value="pA$$w0rd" --label="Secret password" --key-type=authentication --key-provider=file --key-provider-settings=\'{"file_location":"private://keys/secret_password2.key", "strip_line_breaks":true}\' --key-input=textarea_field' => bt('Define a key for a password to use for authentication using the File key provider.'),
+      'bee key-save encryption_key --label="Encryption key" --key-type=encryption --key-type-settings=\'{"key_size":256}\' --key-provider=file --key-provider-settings=\'{"file_location":"private://keys/encryption.key", "strip_line_breaks":true}\' --key-input=none' => bt('Define an existing key to use for encryption using the File key provider. Currently does not include being able to generate the key file.'),
     ),
     'arguments' => array(
       'id' => bt('The ID (machine name) of the key to save.'),
-      'key_value' => bt('A key value to save. May or may not be allowed or required, depending on the key provider'),
     ),
-    'required-arguments' => 1,
     'options' => key_bee_save_options(),
     'bootstrap' => BEE_BOOTSTRAP_FULL,
   );
@@ -28,7 +27,6 @@ function key_bee_command() {
     'arguments' => array(
       'id' => bt('The ID (machine name) of the key to delete.'),
     ),
-    'required-arguments' => TRUE,
     'bootstrap' => BEE_BOOTSTRAP_FULL,
   );
 
@@ -111,10 +109,13 @@ function key_bee_command() {
     'arguments' => array(
       'id' => bt('The ID (machine name) of the key whose value should be retrieved.'),
     ),
-    'required-arguments' => TRUE,
     'options' => array(
-      'base64' => bt('Base64-encode the key value. This is useful in the case of binary encryption keys that would otherwise not be displayed in a readable way.'),
-      'pipe' => bt('Print just the key value, and nothing else.'),
+      'base64' => array(
+        'description' => bt('Base64-encode the key value. This is useful in the case of binary encryption keys that would otherwise not be displayed in a readable way.'),
+      ),
+      'pipe' => array(
+        'description' => bt('Print just the key value, and nothing else.'),
+      ),
     ),
     'aliases' => array('key-value'),
     'bootstrap' => BEE_BOOTSTRAP_FULL,
@@ -137,34 +138,49 @@ function key_bee_command() {
  */
 function key_bee_save_options() {
   return array(
+    'key-value' => array(
+      'description' => bt('A key value to save. May or may not be allowed or required, depending on the key provider'),
+      'value' => bt('Key value'),
+    ),
     'label' => array(
       'description' => bt('The human-readable label of the key.'),
+      'value' => bt('Label'),
     ),
     'description' => array(
       'description' => bt('A short description of the key.'),
+      'value' => bt('Description'),
     ),
     'key-type' => array(
       'description' => bt('The key type. To see a list of available key types, use `bee key-type-list`.'),
+      'value' => bt('Key type'),
       'example-value' => 'authentication,encryption',
     ),
     'key-type-settings' => array(
       'description' => bt('Settings specific to the defined key type, in JSON format.'),
+      'value' => bt('Key type settings'),
     ),
     'key-provider' => array(
       'description' => bt('The key provider. To see a list of available key providers, use `bee key-provider-list`.'),
+      'value' => bt('Key provider'),
       'example-value' => 'config,file',
     ),
     'key-provider-settings' => array(
       'description' => bt('Settings specific to the defined key provider, in JSON format.'),
+      'value' => bt('Key provider settings'),
     ),
     'key-input' => array(
       'description' => bt('The key input method.'),
+      'value' => bt('Key input'),
       'example-value' => 'none,text_field',
     ),
     'key-input-settings' => array(
       'description' => bt('Settings specific to the defined key input, in JSON format.'),
+      'value' => bt('Key input settings'),
     ),
-    'overwrite' => 'Do not fail if the key already exists; overwrite it instead. Default is --no-overwrite.',
+    'overwrite' => array(
+      'description' => bt('Do not fail if the key already exists; overwrite it instead. Default is --no-overwrite.'),
+      'value' => bt('Overwrite'),
+    ),
   );
 }
 

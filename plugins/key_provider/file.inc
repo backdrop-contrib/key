@@ -31,8 +31,11 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
   $is_new = empty($config['id']);
 
   $form['file_location'] = array(
-    '#type' => 'hidden',
-    '#value' => $plugin_config['file_location'],
+    '#type' => 'textfield',
+    '#title' => t('File location'),
+    '#default_value' => $plugin_config['file_location'],
+    '#disabled' => TRUE,
+    '#access' => !$is_new,
   );
 
   $form['strip_line_breaks'] = array(
@@ -178,6 +181,13 @@ function key_provider_file_set_key_value($config, &$form_state, $key_value) {
 }
 
 /**
+ * Modify the delete confirmation form.
+ */
+function key_provider_file_build_delete_form($form, &$form_state, $config, &$message, &$caption) {
+  $caption = '<p>' . t('This action cannot be undone. Any referenced key files will also be deleted. Make backups of any files you wish to keep.') . '</p>';
+}
+
+/**
  * Deletes the value of a key.
  *
  * @param array $config
@@ -187,6 +197,12 @@ function key_provider_file_set_key_value($config, &$form_state, $key_value) {
  *   TRUE if successful, FALSE if unsuccessful.
  */
 function key_provider_file_delete_key_value($config) {
+  $status = FALSE;
   $filename = $config['key_provider_settings']['file_location'] ?? '';
-  return $filename ? backdrop_unlink($filename) : FALSE;
+  $status = $filename ? backdrop_unlink($filename) : FALSE;
+
+  if ($status) {
+    backdrop_set_message(t('The deleted key referenced a pre-existing key file, which was also deleted.'));
+  }
+  return $status;
 }

@@ -150,7 +150,6 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'key_type_settings' => array('key_size' => '256'),
       'key_provider' => 'file',
       'key_provider_settings' => array(
-        'file_location' => '',
         'strip_line_breaks' => 1,
         'base64_encoded' => 0,
       ),
@@ -193,7 +192,6 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     // The file location won't match by definition since it was generated.
     $file_location = $config['key_provider_settings']['file_location'];
     unset($config['key_provider_settings']['file_location']);
-    unset($original_config['key_provider_settings']['file_location']);
     $this->assertEqual($config, $original_config, 'The file/encryption key was added successfully.');
 
     // Confirm that the key value can be retrieved successfully.
@@ -202,13 +200,6 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     $retrieved_key_value = rtrim($retrieved_key_value, "\n\r");
     $this->assertEqual($key_value, $retrieved_key_value, 'The file/encryption key value was retrieved successfully.');
 
-    // Define an altered configuration.
-    $altered_config = $config;
-    $altered_config['key_provider_settings'] = array(
-      'strip_line_breaks' => 1,
-      'base64_encoded' => 1,
-    );
-
     // Delete the key.
     $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");
     $this->backdropPost(NULL, NULL, t('Delete'));
@@ -226,15 +217,12 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
   }
 
   /**
-   * Test the Prior File key provider.
+   * Test the File key provider with Base 64 encoding.
    */
-  public function testPriorFileKeyProvider() {
+  public function testFileBase64KeyProvider() {
     // Create a random label.
     $original_label = (string) BackdropWebTestCase::randomName(8);
     $original_id = strtolower($original_label);
-
-    // Define a file location for the test key.
-    $original_file_location = __DIR__ . '/keys/256-bit.key';
 
     // Define a configuration.
     $original_config = array(
@@ -243,95 +231,16 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
       'description' => 'A test key.',
       'key_type' => 'encryption',
       'key_type_settings' => array('key_size' => 256),
-      'key_provider' => 'prior_file',
+      'key_provider' => 'file',
       'key_provider_settings' => array(
-        'file_location' => $original_file_location,
-        'strip_line_breaks' => 1,
-        'base64_encoded' => 0,
-      ),
-      'key_input' => 'none',
-      'key_input_settings' => array(),
-    );
-
-    // Set the data to save.
-    $data = $original_config;
-    unset($data['key_type_settings']);
-    unset($data['key_provider_settings']);
-    unset($data['key_input_settings']);
-    unset($data['key_input']);
-    foreach ($original_config['key_type_settings'] as $index => $value) {
-      $data["key_type_settings[$index]"] = $value;
-    }
-    foreach ($original_config['key_provider_settings'] as $index => $value) {
-      $data["key_provider_settings[$index]"] = $value;
-    }
-    unset($data['key_provider_settings[base64_encoded]']);
-
-    // Add the configuration.
-    $this->backdropGet(KEY_MENU_PATH . '/add');
-    $this->backdropPostAJAX(NULL, array('key_type' => $data['key_type']), 'key_type');
-    $this->backdropPostAJAX(NULL, array('key_provider' => $data['key_provider']), 'key_provider');
-    $this->backdropPost(NULL, $data, t('Save key'));
-
-    // Confirm that the confirmation text appears.
-    $this->assertText(t('The key @label has been added.', array('@label' => $original_label)), 'Confirmation text appears after adding the file/encryption key.');
-
-    // Confirm that the key appears on the listing page.
-    $this->backdropGet(KEY_MENU_PATH);
-    $this->assertText($original_label, 'The file/encryption key appears on the key listing page.');
-
-    // Confirm that the key was added successfully.
-    $config = key_get_key($original_id);
-    $this->assertEqual($config, $original_config, 'The file/encryption key was added successfully.');
-
-    // Confirm that the key value can be retrieved successfully.
-    $key_value = key_get_key_value($original_id);
-    $retrieved_key_value = file_get_contents($original_file_location) ?: '';
-    $retrieved_key_value = rtrim($retrieved_key_value, "\n\r");
-    $this->assertEqual($key_value, $retrieved_key_value, 'The file/encryption key value was retrieved successfully.');
-
-    // Delete the key.
-    $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");
-    $this->backdropPost(NULL, NULL, t('Delete'));
-
-    // Confirm that the confirmation text appears.
-    $this->assertText(t('The key @label has been deleted.', array('@label' => $original_label)), 'Confirmation text appears after deleting the file/encryption key.');
-
-    // Confirm that the key was deleted.
-    $config = key_get_key($original_id);
-    $this->assertFalse($config, 'The file/encryption key was deleted successfully.');
-
-    // Confirm that the key no longer appears on the listing page.
-    $this->backdropGet(KEY_MENU_PATH);
-    $this->assertNoText($original_label, 'The file/encryption key no longer appears on the key listing page.');
-  }
-
-  /**
-   * Test the Prior File key provider with Base 64 encoding.
-   */
-  public function testPriorFileBase64KeyProvider() {
-    // Create a random label.
-    $original_label = (string) BackdropWebTestCase::randomName(8);
-    $original_id = strtolower($original_label);
-
-    // Define a file location for the test key.
-    $original_file_location = __DIR__ . '/keys/256-bit_base64-encoded.key';
-
-    // Define a configuration.
-    $original_config = array(
-      'id' => $original_id,
-      'label' => $original_label,
-      'description' => 'A test key.',
-      'key_type' => 'encryption',
-      'key_type_settings' => array('key_size' => 256),
-      'key_provider' => 'prior_file',
-      'key_provider_settings' => array(
-        'file_location' => $original_file_location,
         'strip_line_breaks' => 1,
         'base64_encoded' => 1,
       ),
-      'key_input' => 'none',
-      'key_input_settings' => array(),
+      'key_input' => 'generate',
+      'key_input_settings' => array(
+        'display_once' => 1,
+        'generated' => TRUE,
+      ),
     );
 
     // Set the data to save.
@@ -362,11 +271,14 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
 
     // Confirm that the key was added successfully.
     $config = key_get_key($original_id);
+    // The file location won't match by definition since it was generated.
+    $file_location = $config['key_provider_settings']['file_location'];
+    unset($config['key_provider_settings']['file_location']);
     $this->assertEqual($config, $original_config, 'The file/encryption key was added successfully.');
 
     // Confirm that the key value can be retrieved successfully.
     $key_value = key_get_key_value($original_id);
-    $retrieved_key_value = file_get_contents($original_file_location) ?: '';
+    $retrieved_key_value = file_get_contents($file_location) ?: '';
     $retrieved_key_value = base64_decode((rtrim($retrieved_key_value, "\n\r")));
     $this->assertEqual($key_value, $retrieved_key_value, 'The file/encryption key value was retrieved successfully.');
 
