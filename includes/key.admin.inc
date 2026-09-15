@@ -185,6 +185,7 @@ function key_config_form($form, &$form_state, $config = array()) {
       'event' => 'change',
       'wrapper' => 'key-settings',
     ),
+    '#disabled' => !empty($config['id']),
   );
   $form['settings']['type_section']['key_type_description'] = array(
     '#markup' => $key_type['description'],
@@ -218,6 +219,7 @@ function key_config_form($form, &$form_state, $config = array()) {
       'event' => 'change',
       'wrapper' => 'key-settings',
     ),
+    '#disabled' => !empty($config['id']),
   );
   $form['settings']['provider_section']['key_provider_description'] = array(
     '#markup' => $key_provider['description'],
