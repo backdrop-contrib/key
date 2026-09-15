@@ -33,7 +33,8 @@ key that does not belong to any other defined key type. This is the
 default.
 * **Encryption:** Can be used for encrypting and decrypting data. This
 key type has a field for selecting a key size, which is used to
-validate the size of the key value.
+validate the size of the key value. By default the encryption key value is
+generated automaticlaly.
 
 Key types are plugins, so new types can be defined easily.
 
@@ -90,12 +91,15 @@ use Symfony\Component\Dotenv\Dotenv;
 (new Dotenv())->usePutenv()->bootEnv(BACKDROP_ROOT . '/../.env', 'dev', ['test'], TRUE);
 ```
 
-The Configuration, File and Environment provider plugins support storing the
-key with Base64 encoding.
-
 Key providers are plugins, so new providers can be defined easily.
 
-### Key input
+#### Base64 encoding
+
+The provider plugins support storing and retrieving the key with Base64 encoding.
+Base64 is used here to encode arbitrary bytes which are known to be safe to send
+without getting corrupted.
+
+## About key input
 
 When adding or editing a key, if the selected key provider accepts a
 key value, a key input is automatically selected, as defined by the key
@@ -110,38 +114,13 @@ a key value. The Configuration key provider uses this input.
 * **Textarea Field:** This input is the same as the text field input,
 except it uses a textarea HTML element, so it's useful for longer keys,
 such as SSH keys.
+* **Generated:** This input generates a key value automatically based on the
+provider's criteria.
 
-The Text Field and Textarea Field input plugins support the submission
+The Text Field, Textarea Field and Generated input plugins support the submission
 of keys that are Base64-encoded.
 
 Key inputs are plugins, so new inputs can be defined easily.
-
-## Generating a Random Encryption Key
-
-Encryption keys have options for key size. The default key size
-is 256 bits, with 8 bits per byte. For example, a string like
-`12345678901234567890123456789012` has 32 characters/bytes or 256 bits. There is
-also an option for specifying if the key was Base64-encoded. Base64 is used here
-to encode arbitrary bytes which are known to be safe to send without getting
-corrupted.
-
-One way to generate a random encryption key in a Unix environment is to
-enter the following command (changing the path and file name to suit your
-needs):
-
-`dd if=/dev/urandom bs=32 count=1 > /path/to/secret.key`
-
-This will create a binary file with a random 256-bit key. For a 128-bit key,
-change the 32 to 16 in the command. For simplification, consider the "bs" (byte)
-to equal a character.
-
-To use base64 encoding when generating the key, use:
-
-`dd if=/dev/urandom bs=32 count=1 | base64 -i - > path/to/secret.key`
-
-Alternatively, you could also create your own 32 character string and search
-online for a site that can base64 encode it. Then save it to text file that is
-outside the web root and enter the path to the key in the key settings.
 
 ## Integrating Modules
 
@@ -153,6 +132,8 @@ Connection](https://www.drupal.org/project/townsec_key)
 * [Lockr](https://www.drupal.org/project/lockr)
 
 ## For Developers
+
+### Integrate with other modules
 
 Creating a key will have no effect unless another module makes use of
 it. That integration would typically present itself to the end user in
@@ -194,17 +175,38 @@ filter on key type and/or key provider. Examples:
 Modules can retrieve configuration for all keys, configuration for a specific
 key or the value of a specific key:
 
-### Get all key configurations
+#### Get all key configurations
 
 `key_get_keys()`
 
-### Get a specific key configuration
+#### Get a specific key configuration
 
 `key_get_key($key_id)`
 
-### Get a specific key value
+#### Get a specific key value
 
 `key_get_key_value($key_id)`
+
+### Generating a Random Encryption Key
+
+The default encryption key size is 256 bits, with 8 bits per byte. For example,
+a string like `12345678901234567890123456789012` has 32 characters/bytes or 256
+bits. There is also an option for specifying if the key was Base64-encoded.
+
+By default, encryption keys will be generated automatically based on the selected
+key size. Though if you wish to manually generate a key, one way is to
+enter the following command in a Unix environment (changing the path and file
+name to suit your needs):
+
+`dd if=/dev/urandom bs=32 count=1 > /path/to/secret.key`
+
+This will create a binary file with a random 256-bit key. For a 128-bit key,
+change the 32 to 16 in the command. For simplification, consider the "bs" (byte)
+to equal a character.
+
+To use base64 encoding when generating the key, use:
+
+`dd if=/dev/urandom bs=32 count=1 | base64 -i - > path/to/secret.key`
 
 ## License
 
