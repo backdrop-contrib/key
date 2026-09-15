@@ -95,7 +95,7 @@ function key_input_generate_process_submitted_key_value(&$form_state) {
 
     // If the user requested to display the generated password.
     if ($key_input_settings['display_once']) {
-      backdrop_set_message(t('A key value of the requested type has been generated and is displayed below as a Base64-encoded string. You will need to decode it to get the actual key value, which may or may not be human-readable. The key value will not be displayed again, so take note of it now, if necessary.<br>%key_value', array('%key_value' => base64_encode($key_value))), $type = 'status');
+      backdrop_set_message(t('A key value of the requested type has been generated and is displayed below as a Base64-encoded string. You will need to decode it to get the actual key value, which may or may not be human-readable. The key value will not be displayed again, so take note of it now, if necessary.<br>%key_value', array('%key_value' => base64_encode($key_value))));
     }
   }
 
