@@ -82,10 +82,70 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     // Confirm that the key value was set successfully.
     $key_value = key_get_key_value($original_id);
     $this->assertEqual($key_value, $original_key_value, 'The configuration/authentication key value was set successfully.');
+  }
+
+  /**
+   * Test the Configuration key provider.
+   */
+  public function testConfigKeyProviderAltered() {
+    // Create a random label.
+    $original_label = (string) BackdropWebTestCase::randomName(8);
+    $original_id = strtolower($original_label);
+
+    // Create a random key value.
+    $original_key_value = BackdropWebTestCase::randomString(32);
+
+    // Define a configuration.
+    $original_config = array(
+      'id' => $original_id,
+      'label' => $original_label,
+      'description' => 'A test key.',
+      'key_type' => 'authentication',
+      'key_type_settings' => array(),
+      'key_provider' => 'config',
+      'key_provider_settings' => array('key_value' => $original_key_value),
+      'key_input' => 'textarea_field',
+      'key_input_settings' => array(),
+    );
+
+    // Set the data to save.
+    $data = $original_config;
+    unset($data['key_type_settings']);
+    unset($data['key_provider_settings']);
+    unset($data['key_input_settings']);
+    unset($data['key_input']);
+    $data['key_input_settings[key_value]'] = $original_key_value;
+
+    // Add the configuration.
+    $this->backdropGet(KEY_MENU_PATH . '/add');
+
+    // Try to change the key_type, and the key_provider to ensure AJAX works.
+    $this->backdropPostAJAX(NULL, array('key_type' => 'encryption'), 'key_type');
+    $this->backdropPostAJAX(NULL, array('key_provider' => 'state'), 'key_provider');
+
+    $this->assertText(t('Key size'), 'Key size field appears when choosing Encryption type.');
+    $this->assertText(t('State key'), 'State key field appears when choosing State provider.');
+
+    // Then switch to the defined types.
+    $this->backdropPostAJAX(NULL, array('key_type' => $data['key_type']), 'key_type');
+    $this->backdropPostAJAX(NULL, array('key_provider' => $data['key_provider']), 'key_provider');
+    $this->backdropPost(NULL, $data, t('Save key'));
+
+    // Confirm that the key value was set successfully.
+    $key_value = key_get_key_value($original_id);
+    $this->assertEqual($key_value, $original_key_value, 'The configuration/authentication key value was set successfully.');
+
+    // Confirm that the key was edited successfully.
+    $config = key_get_key($original_id);
+    $this->assertEqual($config, $original_config, 'The configuration/authentication key was added successfully.');
 
     // Define an altered configuration.
+    $config = key_get_key($original_id);
     $altered_config = $config;
     $altered_config['description'] = 'A test key that has been altered.';
+
+    $new_key_value = BackdropWebTestCase::randomString(32);
+    $altered_config['key_provider_settings'] = array('key_value' => $new_key_value);
 
     // Set the data to save.
     $data = $altered_config;
@@ -93,13 +153,13 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     unset($data['key_type_settings']);
     unset($data['key_provider_settings']);
     unset($data['key_input_settings']);
+    unset($data['key_type']);
+    unset($data['key_provider']);
     unset($data['key_input']);
-    $data['key_input_settings[key_value]'] = $original_key_value;
+    $data['key_input_settings[key_value]'] = $new_key_value;
 
     // Edit the configuration.
     $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id");
-    $this->backdropPostAJAX(NULL, array('key_type' => $data['key_type']), 'key_type');
-    $this->backdropPostAJAX(NULL, array('key_provider' => $data['key_provider']), 'key_provider');
     $this->backdropPost(NULL, $data, t('Save key'));
 
     // Confirm that the confirmation text appears.
@@ -113,9 +173,11 @@ class KeyBasicAdminTest extends BackdropWebTestCase {
     $config = key_get_key($original_id);
     $this->assertEqual($config, $altered_config, 'The configuration/authentication key was edited successfully.');
 
-    // Confirm that the key value was set successfully.
-    $key_value = key_get_key_value($original_id);
-    $this->assertEqual($key_value, $original_key_value, 'The configuration/authentication key value was set successfully.');
+    // Confirm that the new key value was updated successfully.
+    // key_get_key_value() uses a static cache so need to get it from the
+    // freshly retrieved config array.
+    $key_value = $config['key_provider_settings']['key_value'];
+    $this->assertEqual($key_value, $new_key_value, 'The new configuration/authentication key value was updated successfully.');
 
     // Delete the key.
     $this->backdropGet(KEY_MENU_PATH . "/manage/$original_id/delete");
