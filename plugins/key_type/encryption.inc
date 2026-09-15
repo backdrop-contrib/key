@@ -47,13 +47,16 @@ function key_type_encryption_build_configuration_form($form, &$form_state) {
     '#options' => $key_size_options + array('other' => t('Other')),
     '#default_value' => $key_size,
     '#required' => TRUE,
+    '#disabled' => !empty($config['id']),
   );
   $form['key_size_other_value'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Key size (other value)'),
     '#title_display' => 'invisible',
     '#description' => t('Enter a custom key size in bits.'),
     '#default_value' => $key_size_other_value,
+    '#min' => 1,
+    '#max' => 9999,
     '#maxlength'=> 20,
     '#size'=> 20,
     '#states' => array(
@@ -91,7 +94,12 @@ function key_type_encryption_validate_configuration_form($form, &$form_state) {
  */
 function key_type_encryption_generate_key_value($config) {
   if (isset($config['key_type_settings']['key_size'])) {
-    $bytes = $config['key_type_settings']['key_size'] / 8;
+    $key_size = $config['key_type_settings']['key_size'];
+    // If 'Other' was selected for the key size, use the custom entered value.
+    if ($key_size == 'other') {
+      $key_size = $config['key_type_settings']['key_size_other_value'];
+    }
+    $bytes = $key_size / 8;
   }
   else {
     // If no key size has been defined, use 32 bytes as the default.
