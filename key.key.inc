@@ -11,9 +11,7 @@
 function key_key_type_info() {
   $info['encryption'] = array(
     'label' => t('Encryption'),
-    'description' => t('Used for encrypting and decrypting data. By default, the encryption value will be generated automatically to match the required key size. In some cases, an existing key can be used, such as in the case of the File key provider. If using your own pre-existing file, read the <a href="@documentation">documentation</a>.', array(
-      '@documentation' => 'https://backdropcms.org/project/key',
-    )),
+    'description' => t('Used for encrypting and decrypting data. By default, the encryption value will be generated automatically to match the required key size. To generate a custom encryption key, read the <a href="@documentation">documentation</a>.'),
     'group' => 'encryption',
     'key value' => array(
       'plugin' => 'generate',
@@ -151,9 +149,10 @@ function key_key_provider_info() {
   $info['file'] = array(
     'label' => t('File'),
     'description' => t(
-      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set.',
+      'Generate a key file. It requires the <a href="@filesystem_settings">Private file system path</a> to be set. Read the <a href="@documentation">documentation</a> to use a pre-existing file.',
       array(
         '@filesystem_settings' => url('admin/config/media/file-system'),
+        '@documentation' => 'https://backdropcms.org/project/key',
       ),
     ),
     'storage method' => 'file',
