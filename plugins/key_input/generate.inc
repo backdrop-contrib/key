@@ -25,8 +25,6 @@ function key_input_generate_default_configuration() {
  *   The plugin configuration form.
  */
 function key_input_generate_build_configuration_form($form, &$form_state) {
-  $key_value_data = $form_state['storage']['key_value'];
-
   $config = $form_state['storage']['key_config'];
   $plugin_config = $config['key_input_settings'] + key_input_generate_default_configuration();
 

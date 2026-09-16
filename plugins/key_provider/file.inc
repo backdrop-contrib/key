@@ -65,11 +65,8 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
  * Validate callback for the configuration form.
  */
 function key_provider_file_validate_configuration_form($form, &$form_state) {
-  $key_provider_settings = $form_state['values'];
-  $filename = $key_provider_settings['file_location'];
-
-  $id = $form_state['storage']['key_config']['id'] ?? '';
-  $config = config('key.key.' . $id);
+  // Filename only present if the key config already exists.
+  $filename = $form_state['values']['file_location'];
 
   // Check that private file system is set.
   if (!config_get('system.core', 'file_private_path')) {
@@ -83,12 +80,13 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
     return;
   }
 
-  if ($config->isNew()) {
-    $filename = _key_create_private_key_file("{$id}_");
+  if (!$filename) {
+    // Test the private://keys directory can be created.
+    $directory = _key_create_private_keys_directory();
 
-    if (!$filename) {
+    if (!$directory) {
       form_error($form, t(
-        'Unable to create the private key file. Ensure that the <a href="@filesystem_settings">Private file system path</a> (e.g., %str) has been set.',
+        'The private keys directory does not exist and cannot be created. Ensure that the <a href="@filesystem_settings">Private file system path</a> (e.g., %str) has been set and is writable.',
         array(
           '@filesystem_settings' => url('admin/config/media/file-system'),
           '%str' => 'private://',
@@ -96,25 +94,19 @@ function key_provider_file_validate_configuration_form($form, &$form_state) {
       ));
       return;
     }
-
-    $form_state['values']['file_location'] = $filename;
   }
+  else {
+    // If a filename is specified, does the file exist?
+    if (!is_file($filename)) {
+      form_set_error('file_location', t('There is no file at the specified location.'));
+      return;
+    }
 
-  if (!$filename) {
-    form_set_error('file_location', t('The file location is required.'));
-    return;
-  }
-
-  // Does the file exist?
-  if (!is_file($filename)) {
-    form_set_error('file_location', t('There is no file at the specified location.'));
-    return;
-  }
-
-  // Is the file readable?
-  if ((!is_readable($filename))) {
-    form_set_error('file_location', t('The file at the specified location is not readable.'));
-    return;
+    // Is the file readable?
+    if ((!is_readable($filename))) {
+      form_set_error('file_location', t('The file at the specified location is not readable.'));
+      return;
+    }
   }
 }
 
@@ -138,7 +130,7 @@ function key_provider_file_get_key_value($config) {
     $key_value = rtrim($key_value, "\n\r");
   }
 
-  // Base64-decode if necessary.
+  // Base64 decode if necessary.
   if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded']) {
     $key_value = base64_decode($key_value);
   }
@@ -160,6 +152,8 @@ function key_provider_file_get_key_value($config) {
  *   TRUE if successful, FALSE if unsuccessful.
  */
 function key_provider_file_set_key_value($config, &$form_state, $key_value) {
+  $id = $form_state['storage']['key_config']['id'] ?? '';
+
   if (isset($config['key_provider_settings']['base64_encoded']) && $config['key_provider_settings']['base64_encoded'] == TRUE) {
     $key_value = base64_encode($key_value);
   }
@@ -168,12 +162,16 @@ function key_provider_file_set_key_value($config, &$form_state, $key_value) {
   unset($form_state['values']['key_value']);
 
   if (!$key_value) {
-    return TRUE;
+    return FALSE;
   }
 
   $filename = $form_state['values']['file_location'];
+  if (!$filename) {
+    $filename = _key_create_private_key_file("{$id}_");
+  }
   $status = FALSE;
   if ($filename) {
+    $form_state['values']['file_location'] = $filename;
     $status = (bool) file_put_contents($filename, $key_value);
   }
 

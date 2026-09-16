@@ -985,6 +985,23 @@ function key_get_function(array $plugin_definition, $function_name) {
 /**
  * Confirm that keys directory exists and is writable.
  *
+ * @return string|false
+ *   Directory or FALSE if unable to create it.
+ */
+function _key_create_private_keys_directory() {
+  $private_path = config_get('system.core', 'file_private_path');
+  $directory = FALSE;
+  if ($private_path) {
+    $directory = 'private://keys';
+    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+      return $directory;
+    }
+  }
+
+  return $directory;
+}
+
+/**
  * Creates a key file in the private file system if it is possible.
  *
  * @param string $prefix
@@ -994,25 +1011,22 @@ function key_get_function(array $plugin_definition, $function_name) {
  *   Filename destination or FALSE if unable to create it.
  */
 function _key_create_private_key_file($prefix = '') {
-  $private_path = config_get('system.core', 'file_private_path');
-  $directory = '';
-  if ($private_path) {
-    $directory = 'private://keys';
-    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
-      $filename = $prefix . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
-      $destination = "{$directory}/$filename";
+  $directory = _key_create_private_keys_directory();
 
-      // If file already exists, then fail.
-      if (is_file($destination)) {
-        return FALSE;
-      }
+  if ($directory) {
+    $filename = $prefix . backdrop_hmac_base64((new Uuid())->generate(), backdrop_get_hash_salt()) . '.key';
+    $destination = "{$directory}/$filename";
 
-      // Ensure the file exists and is readable.
-      file_put_contents($destination, '');
-      if (is_readable($destination)) {
-        // Return the stream uri.
-        return $destination;
-      }
+    // If file already exists, then fail.
+    if (is_file($destination)) {
+      return FALSE;
+    }
+
+    // Ensure the file exists and is readable.
+    file_put_contents($destination, '');
+    if (is_readable($destination)) {
+      // Return the stream uri.
+      return $destination;
     }
   }
 

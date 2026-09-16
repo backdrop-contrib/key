@@ -137,8 +137,16 @@ function key_type_encryption_validate_key_value($form, &$form_state, $key_value)
     return;
   }
 
+  $is_new = empty($form_state['storage']['original_key']['id']);
+
   if (!$key_value) {
-    form_set_error('key_size', t('The key value cannot be generated, most likely because of an improper key size.'));
+    if ($is_new) {
+      $message = t('Unable to generate a key value.');
+    }
+    else {
+      $message = t('The key value is missing.');
+    }
+    form_error($form, $message);
     return;
   }
 
