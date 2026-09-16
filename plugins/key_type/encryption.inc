@@ -79,6 +79,16 @@ function key_type_encryption_validate_configuration_form($form, &$form_state) {
   // If 'Other' was selected for the key size, use the custom entered value.
   if ($form_state['values']['key_size'] == 'other') {
     $form_state['values']['key_size'] = $form_state['values']['key_size_other_value'];
+
+    if (!$form_state['values']['key_size']) {
+      form_set_error('key_size_other', t('The custom key size cannot be empty.'));
+      return;
+    }
+
+    if ($form_state['values']['key_size'] && $form_state['values']['key_size'] % 8 > 0) {
+      form_set_error('key_size_other', t('The custom key size should divide evenly into 8.'));
+      return;
+    }
   }
   unset($form_state['values']['key_size_other_value']);
 }
@@ -93,19 +103,25 @@ function key_type_encryption_validate_configuration_form($form, &$form_state) {
  *   A random key.
  */
 function key_type_encryption_generate_key_value($config) {
+  $random_key = '';
+
   if (isset($config['key_type_settings']['key_size'])) {
     $key_size = $config['key_type_settings']['key_size'];
     // If 'Other' was selected for the key size, use the custom entered value.
     if ($key_size == 'other') {
       $key_size = $config['key_type_settings']['key_size_other_value'];
     }
-    $bytes = $key_size / 8;
+    $bytes = $key_size > 1 ? $key_size / 8 : 0;
   }
   else {
     // If no key size has been defined, use 32 bytes as the default.
     $bytes = 32;
   }
-  $random_key = backdrop_random_bytes($bytes);
+
+  // If bytes is a round number then generate the key.
+  if ($bytes > 1 && $bytes % 1 === 0) {
+    $random_key = backdrop_random_bytes($bytes);
+  }
 
   return $random_key;
 }
@@ -118,6 +134,11 @@ function key_type_encryption_generate_key_value($config) {
  */
 function key_type_encryption_validate_key_value($form, &$form_state, $key_value) {
   if (empty($form_state['values']['key_size'])) {
+    return;
+  }
+
+  if (!$key_value) {
+    form_set_error('key_size', t('The key value cannot be generated, most likely because of an improper key size.'));
     return;
   }
 

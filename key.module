@@ -732,13 +732,9 @@ function _key_default_obscure_key_value($key_value, $options = array()) {
       $options['visible_right'] = 4;
       $obscured_value = _key_obscure_value($key_value, $options);
       break;
-
     case 'encryption':
-      $options['visible_right'] = 0;
-      $obscured_value = _key_obscure_value($key_value, $options);
-      break;
-
     default:
+      // Encryption keys are generated so do not obscure them.
       $obscured_value = $key_value;
   }
 

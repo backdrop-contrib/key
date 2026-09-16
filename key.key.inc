@@ -45,6 +45,7 @@ function key_key_input_info() {
     'description' => t('Generates a new key value.'),
     'default configuration' => 'key_input_generate_default_configuration',
     'build configuration form' => 'key_input_generate_build_configuration_form',
+    'submit configuration form' => 'key_input_generate_submit_configuration_form',
     'process submitted key value' => 'key_input_generate_process_submitted_key_value',
     'process existing key value' => '_key_default_process_existing_key_value',
     'file' => backdrop_get_path('module', 'key') . '/plugins/key_input/generate.inc',
