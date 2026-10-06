@@ -47,7 +47,6 @@ function key_type_encryption_build_configuration_form($form, &$form_state) {
     '#options' => $key_size_options + array('other' => t('Other')),
     '#default_value' => $key_size,
     '#required' => TRUE,
-    '#disabled' => !empty($config['id']),
   );
   $form['key_size_other_value'] = array(
     '#type' => 'number',

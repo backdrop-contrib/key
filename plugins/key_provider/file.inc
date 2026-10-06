@@ -28,14 +28,12 @@ function key_provider_file_default_configuration() {
 function key_provider_file_build_configuration_form($form, &$form_state) {
   $config = $form_state['storage']['key_config'];
   $plugin_config = $form_state['storage']['key_config']['key_provider_settings'] + key_provider_file_default_configuration();
-  $is_new = empty($config['id']);
 
   $form['file_location'] = array(
     '#type' => 'textfield',
     '#title' => t('File location'),
     '#default_value' => $plugin_config['file_location'],
-    '#disabled' => TRUE,
-    '#access' => !$is_new,
+    '#description' => t('Leave empty to generate a new key file, or enter the path of an existing file.'),
   );
 
   $form['strip_line_breaks'] = array(
@@ -52,9 +50,8 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
     $form['base64_encoded'] = array(
       '#type' => 'checkbox',
       '#title' => t('Base64-encoded'),
-      '#description' => t('Checking this will store the key with Base64 encoding. Can only be set on new keys.'),
+      '#description' => t('Checking this will store the key with Base64 encoding.'),
       '#default_value' => $plugin_config['base64_encoded'],
-      '#disabled' => !$is_new,
     );
   }
 
@@ -65,22 +62,21 @@ function key_provider_file_build_configuration_form($form, &$form_state) {
  * Validate callback for the configuration form.
  */
 function key_provider_file_validate_configuration_form($form, &$form_state) {
-  // Filename only present if the key config already exists.
   $filename = $form_state['values']['file_location'];
 
-  // Check that private file system is set.
-  if (!config_get('system.core', 'file_private_path')) {
-    form_error($form, t(
-      'The <a href="@filesystem_settings">Private file system path</a> (e.g., %str) needs to be set in order for the private key provider to save this key.',
-      array(
-        '@filesystem_settings' => url('admin/config/media/file-system'),
-        '%str' => 'private://',
-      )
-    ));
-    return;
-  }
-
   if (!$filename) {
+    // Check that private file system is set.
+    if (!config_get('system.core', 'file_private_path')) {
+      form_error($form, t(
+        'The <a href="@filesystem_settings">Private file system path</a> (e.g., %str) needs to be set in order for the private key provider to save this key.',
+        array(
+          '@filesystem_settings' => url('admin/config/media/file-system'),
+          '%str' => 'private://',
+        )
+      ));
+      return;
+    }
+
     // Test the private://keys directory can be created.
     $directory = _key_create_private_keys_directory();
 
